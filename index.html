@@ -133,6 +133,7 @@
             box-shadow: 0 12px 30px rgba(0,0,0,0.08);
             text-align: center;
             transition: all 0.2s ease;
+            position: relative;
         }
 
         .chord-image-area {
@@ -318,6 +319,53 @@
             background: #3b82f6;
         }
 
+        /* 倒计时遮罩层样式 */
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+        }
+
+        .countdown-number {
+            font-size: 8rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 30px rgba(59,130,246,0.8);
+            animation: pulse 0.8s ease-out;
+            font-family: monospace;
+        }
+
+        .countdown-text {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #10b981;
+            text-shadow: 0 0 30px rgba(16,185,129,0.8);
+            animation: pulse 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 700px) {
             body {
                 padding: 12px;
@@ -335,6 +383,12 @@
             }
             .control-group {
                 justify-content: space-between;
+            }
+            .countdown-number {
+                font-size: 5rem;
+            }
+            .countdown-text {
+                font-size: 3rem;
             }
         }
     </style>
@@ -438,6 +492,7 @@
     let currentChordObj = null;
     let countdownInterval = null;
     let isPracticing = false;
+    let isCountdownActive = false;  // 倒计时进行中标志，防止重复点击
 
     // DOM 元素
     const chordImg = document.getElementById('chordImg');
@@ -467,6 +522,47 @@
     function updateTimersDisplay() {
         sessionTimeSpan.innerText = formatTime(sessionSeconds);
         totalTimeSpan.innerText = formatTime(totalSeconds);
+    }
+
+    // 显示倒计时遮罩
+    function showCountdown(callback) {
+        // 创建遮罩层
+        const overlay = document.createElement('div');
+        overlay.className = 'countdown-overlay';
+        const contentDiv = document.createElement('div');
+        contentDiv.style.textAlign = 'center';
+        overlay.appendChild(contentDiv);
+        document.body.appendChild(overlay);
+
+        const numbers = ['3', '2', '1', '开始！'];
+        let index = 0;
+
+        function showNext() {
+            if (index >= numbers.length) {
+                // 倒计时结束，移除遮罩层
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    if (callback) callback();
+                }, 300);
+                return;
+            }
+
+            const current = numbers[index];
+            contentDiv.innerHTML = '';
+            const span = document.createElement('div');
+            span.className = current === '开始！' ? 'countdown-text' : 'countdown-number';
+            span.textContent = current;
+            contentDiv.appendChild(span);
+
+            // 播放动画后进入下一个
+            setTimeout(() => {
+                index++;
+                showNext();
+            }, 800);
+        }
+
+        showNext();
     }
 
     // 图片加载增强函数 - 确保图片能及时更新
@@ -556,7 +652,7 @@
         return deviceId;
     }
 
-    // 随机选择和弦 - 修复图片加载问题
+    // 随机选择和弦
     function pickRandomChord() {
         const availableChords = chordsDatabase.filter(chord => selectedChordIds.has(chord.id));
         if (availableChords.length === 0) {
@@ -569,7 +665,6 @@
             const chord = availableChords[0];
             currentChordObj = chord;
             chordNameLabel.innerText = chord.name;
-            // 使用增强的图片加载函数
             setChordImageWithLoading(chord.image_url);
             lastChordId = chord.id;
             return chord;
@@ -588,7 +683,6 @@
         const chord = candidates[randomIndex];
         currentChordObj = chord;
         chordNameLabel.innerText = chord.name;
-        // 使用增强的图片加载函数，确保图片及时更新
         setChordImageWithLoading(chord.image_url);
         lastChordId = chord.id;
         return chord;
@@ -646,14 +740,26 @@
         countdownInterval = setInterval(updateHint, 200);
     }
 
-    function startPractice() {
+    // 真正开始练习的内部函数（倒计时结束后调用）
+    function _startPracticeInternal() {
         if (selectedChordIds.size === 0) {
             alert("请先至少选择一个和弦再开始练习");
+            startStopBtn.innerHTML = "▶ 开始练习";
+            startStopBtn.style.background = "#10b981";
+            startStopBtn.classList.add("stopped");
+            isPracticing = false;
+            isCountdownActive = false;
             return;
         }
 
         isPracticing = true;
+        isCountdownActive = false;
 
+        // 重置本次练习时间（每次新开始重置为0）
+        sessionSeconds = 0;
+        updateTimersDisplay();
+
+        // 开始计时
         if (practiceTimer) clearInterval(practiceTimer);
         practiceTimer = setInterval(() => {
             if (isPracticing) {
@@ -664,14 +770,55 @@
             }
         }, 1000);
 
+        // 开始轮换
         startRotation();
 
+        // 更新按钮
         startStopBtn.innerHTML = "⏹ 停止练习";
-        startStopBtn.classList.remove("stopped");
         startStopBtn.style.background = "#ef4444";
+        startStopBtn.classList.remove("stopped");
+    }
+
+    // 倒计时包装函数
+    function startPracticeWithCountdown() {
+        // 防止重复点击
+        if (isPracticing || isCountdownActive) return;
+
+        // 检查是否有选中的和弦
+        if (selectedChordIds.size === 0) {
+            alert("请先至少选择一个和弦再开始练习");
+            return;
+        }
+
+        isCountdownActive = true;
+
+        // 禁用开始按钮视觉反馈（但保持可点，不过内部已拦截）
+        startStopBtn.style.opacity = "0.7";
+
+        // 显示倒计时动画
+        showCountdown(() => {
+            // 倒计时结束后正式启动
+            startStopBtn.style.opacity = "1";
+            _startPracticeInternal();
+        });
     }
 
     function stopPractice() {
+        // 如果倒计时进行中，无法停止？为了体验，允许取消倒计时
+        if (isCountdownActive) {
+            // 关闭可能存在的遮罩
+            const overlay = document.querySelector('.countdown-overlay');
+            if (overlay) overlay.remove();
+            isCountdownActive = false;
+            startStopBtn.style.opacity = "1";
+            startStopBtn.innerHTML = "▶ 开始练习";
+            startStopBtn.style.background = "#10b981";
+            startStopBtn.classList.add("stopped");
+            return;
+        }
+
+        if (!isPracticing) return;
+
         isPracticing = false;
 
         if (practiceTimer) {
@@ -692,7 +839,7 @@
         if (isPracticing) {
             stopPractice();
         } else {
-            startPractice();
+            startPracticeWithCountdown();
         }
     }
 
