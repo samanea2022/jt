@@ -2,12 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>智能和弦练习室 | 动态随机练习</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js 轻量图表库 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ========== 全局重置 ========== */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -26,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* 顶部栏 */
+        /* ========== 电脑端样式（原来的布局） ========== */
         .stats-bar {
             background: white;
             border-radius: 32px;
@@ -76,6 +76,11 @@
             background: #f8fafc;
             padding: 6px 18px;
             border-radius: 48px;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            font-size: 0.85rem;
         }
 
         .sound-toggle {
@@ -185,7 +190,7 @@
 
         .next-timer { margin-top: 18px; font-size: 0.9rem; color: #475569; }
 
-        /* ========== 小巧的统计折叠面板 ========== */
+        /* 统计折叠面板 */
         .stats-collapsible {
             margin-bottom: 20px;
         }
@@ -310,6 +315,10 @@
             font-size: 14px;
             color: #1f2937;
         }
+        .chord-tag.selected .delete-icon {
+            background: #ffffffaa;
+            color: #b91c1c;
+        }
         .upload-preview {
             margin-top: 15px;
             display: flex;
@@ -321,7 +330,10 @@
             border: 1px solid #cbd5e1;
             padding: 8px;
         }
-        h3 { margin-top: 0; font-weight: 600; }
+        h3 {
+            margin-top: 0;
+            font-weight: 600;
+        }
         .info-note {
             font-size: 0.7rem;
             color: #5b6e8c;
@@ -373,19 +385,174 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); opacity: 1; }
         }
-        @media (max-width: 700px) {
-            body { padding: 12px; }
-            .timer-value { font-size: 1.3rem; }
-            .chord-name-badge { font-size: 1.5rem; padding: 5px 20px; }
-            .stats-bar { flex-direction: column; align-items: stretch; }
-            .countdown-number { font-size: 5rem; }
-            .countdown-text { font-size: 3rem; }
+
+        /* ========== 手机端覆盖样式（仅当屏幕宽度 ≤ 600px 时生效） ========== */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* 顶部栏垂直排列 */
+            .stats-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .timer-panel {
+                justify-content: center;
+                gap: 20px;
+                padding: 6px 16px;
+            }
+
+            .timer-value {
+                font-size: 1.3rem;
+            }
+
+            .control-group {
+                justify-content: center;
+                padding: 6px 12px;
+            }
+
+            .control-group label {
+                font-size: 0.75rem;
+            }
+
+            /* 统计折叠面板 - 全宽 */
+            .stats-header {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .stats-header span:first-child {
+                font-size: 1rem;
+            }
+
+            .stats-summary {
+                font-size: 0.75rem;
+            }
+
+            .stats-panel {
+                padding: 16px;
+            }
+
+            .mini-stats-row {
+                gap: 12px;
+            }
+
+            .mini-stat {
+                padding: 10px;
+            }
+
+            .mini-stat .number {
+                font-size: 1.3rem;
+            }
+
+            .mini-stat .label {
+                font-size: 0.65rem;
+            }
+
+            /* 和弦展示区 */
+            .chord-showcase {
+                padding: 20px 16px 30px;
+                margin-bottom: 20px;
+            }
+
+            .chord-image-area {
+                min-height: 200px;
+                padding: 16px;
+            }
+
+            #chordImg {
+                max-height: 200px;
+            }
+
+            .chord-name-badge {
+                font-size: 1.3rem;
+                padding: 6px 20px;
+            }
+
+            .next-timer {
+                font-size: 0.8rem;
+            }
+
+            /* 管理区域 */
+            .management {
+                padding: 16px;
+            }
+
+            .flex-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .upload-card, .chord-list-card {
+                min-width: auto;
+                padding: 16px;
+            }
+
+            h3 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+
+            .chord-grid {
+                max-height: 240px;
+                gap: 10px;
+            }
+
+            .chord-tag {
+                padding: 5px 14px;
+                font-size: 0.8rem;
+            }
+
+            .chord-tag .delete-icon {
+                width: 18px;
+                height: 18px;
+                font-size: 12px;
+            }
+
+            /* 按钮 */
+            #startStopBtn {
+                font-size: 1rem;
+                padding: 10px 28px;
+            }
+
+            button {
+                padding: 6px 14px;
+                font-size: 0.75rem;
+            }
+
+            select, input {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+
+            .sound-icon {
+                font-size: 1.1rem;
+            }
+
+            /* 倒计时手机缩小 */
+            .countdown-number {
+                font-size: 4rem;
+            }
+            .countdown-text {
+                font-size: 2.5rem;
+            }
+
+            .info-note {
+                font-size: 0.6rem;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 顶部栏 -->
     <div class="stats-bar">
         <div class="timer-panel">
             <div class="timer-item">
@@ -410,7 +577,6 @@
         </div>
     </div>
 
-    <!-- 小巧可折叠统计面板 -->
     <div class="stats-collapsible">
         <div class="stats-header" id="statsHeader">
             <span>📊</span>
@@ -419,22 +585,11 @@
         </div>
         <div class="stats-panel" id="statsPanel">
             <div class="mini-stats-row">
-                <div class="mini-stat">
-                    <div class="number" id="todayCount">0</div>
-                    <div class="label">今日练习次数</div>
-                </div>
-                <div class="mini-stat">
-                    <div class="number" id="todayDuration">0</div>
-                    <div class="label">今日练习(分钟)</div>
-                </div>
-                <div class="mini-stat">
-                    <div class="number" id="weeklyTotal">0</div>
-                    <div class="label">本周总时长(分钟)</div>
-                </div>
+                <div class="mini-stat"><div class="number" id="todayCount">0</div><div class="label">今日练习次数</div></div>
+                <div class="mini-stat"><div class="number" id="todayDuration">0</div><div class="label">今日练习(分钟)</div></div>
+                <div class="mini-stat"><div class="number" id="weeklyTotal">0</div><div class="label">本周总时长(分钟)</div></div>
             </div>
-            <div class="chart-container">
-                <canvas id="weeklyChart" width="400" height="160"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="weeklyChart" width="400" height="160"></canvas></div>
         </div>
     </div>
 
@@ -457,170 +612,83 @@
                 <input type="text" id="chordNameInput" placeholder="和弦名称 (如: C Major, Am)" style="width:100%; margin-bottom:12px;">
                 <input type="file" id="imageUpload" accept="image/*" style="width:100%; margin-bottom:12px;">
                 <button id="uploadBtn">⬆️ 上传到服务器</button>
-                <div class="upload-preview" id="previewWrap" style="display:none;">
-                    <span>🖼️ 预览:</span>
-                    <img id="previewImg" width="40" height="40" style="border-radius: 12px;">
-                </div>
+                <div class="upload-preview" id="previewWrap" style="display:none;"><span>🖼️ 预览:</span><img id="previewImg" width="40" height="40" style="border-radius: 12px;"></div>
                 <div class="info-note">※ 上传后所有设备同步，图片存储于Supabase Storage</div>
             </div>
             <div class="chord-list-card">
                 <h3>🎸 可选和弦 (点击选择/反选)</h3>
-                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-                    <button id="selectAllBtn" class="secondary" style="padding: 4px 14px;">全选</button>
-                    <button id="deselectAllBtn" class="secondary" style="padding: 4px 14px;">清空</button>
-                    <span style="font-size:0.8rem; color:#475569;">已选 <span id="selectedCount">0</span> 个和弦</span>
+                <div style="display:flex; gap:12px; margin-bottom:12px;">
+                    <button id="selectAllBtn" class="secondary">全选</button>
+                    <button id="deselectAllBtn" class="secondary">清空</button>
+                    <span>已选 <span id="selectedCount">0</span></span>
                 </div>
-                <div id="chordListContainer" class="chord-grid"><div style="color:#9ca3af;">加载和弦库中...</div></div>
+                <div id="chordListContainer" class="chord-grid">加载中...</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ==================== Supabase 配置 ====================
+    // ========== Supabase 配置（请修改为您的实际值）==========
     const MY_SUPABASE_URL = 'https://bnsbjgyulputgmqixjzs.supabase.co';
     const MY_SUPABASE_ANON_KEY = 'sb_publishable_AMpdOLRMYhtY32EbVrhEUg_d58mXmte';
     const STORAGE_BUCKET = 'chord_images';
-    // ======================================================
+    const FIXED_USER_ID = 'my_chord_practice_user';
+    // ========================================================
 
-    let mySupabase = null;
+    let supabaseClient = null;
     let usingDemoMode = false;
-    if (MY_SUPABASE_URL.includes('your-project') || MY_SUPABASE_ANON_KEY.includes('your-anon-key')) {
-        console.warn("⚠️ 未配置有效的 Supabase，启用本地演示模式");
+
+    if (MY_SUPABASE_URL.includes('your-project')) {
         usingDemoMode = true;
+        console.warn("演示模式，数据仅存本地");
     } else {
         try {
             const { createClient } = supabase;
-            mySupabase = createClient(MY_SUPABASE_URL, MY_SUPABASE_ANON_KEY);
+            supabaseClient = createClient(MY_SUPABASE_URL, MY_SUPABASE_ANON_KEY);
         } catch(e) { usingDemoMode = true; }
     }
 
-    // ---------- 音效管理 ----------
+    // 音效
     let soundEnabled = true;
     function playBeep() {
         if (!soundEnabled) return;
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.frequency.value = 880;
-            gainNode.gain.value = 0.2;
-            oscillator.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
-            oscillator.stop(audioCtx.currentTime + 0.3);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = 880; gain.gain.value = 0.2;
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.stop(audioCtx.currentTime + 0.3);
             audioCtx.resume();
-        } catch(e) { console.log("Audio not supported"); }
+        } catch(e) {}
     }
     function playDing() {
         if (!soundEnabled) return;
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.frequency.value = 1568;
-            gainNode.gain.value = 0.15;
-            oscillator.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
-            oscillator.stop(audioCtx.currentTime + 0.4);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = 1568; gain.gain.value = 0.15;
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+            osc.stop(audioCtx.currentTime + 0.4);
             audioCtx.resume();
         } catch(e) {}
     }
 
-    // ---------- 统计存储 ----------
-    let practiceStats = { dailyRecords: {} };
-    let weeklyChart = null;
-
-    function loadStats() {
-        const stored = localStorage.getItem('chord_practice_stats');
-        if (stored) {
-            try { practiceStats = JSON.parse(stored); } catch(e) {}
-        }
-        if (!practiceStats.dailyRecords) practiceStats.dailyRecords = {};
-        updateStatsUI();
-    }
-    function saveStats() {
-        localStorage.setItem('chord_practice_stats', JSON.stringify(practiceStats));
-        updateStatsUI();
-    }
-    function getTodayKey() { return new Date().toISOString().slice(0,10); }
-    function addPracticeSession(seconds) {
-        const today = getTodayKey();
-        if (!practiceStats.dailyRecords[today]) practiceStats.dailyRecords[today] = { count:0, totalSeconds:0 };
-        practiceStats.dailyRecords[today].count++;
-        practiceStats.dailyRecords[today].totalSeconds += seconds;
-        saveStats();
-    }
-    function updateStatsUI() {
-        const today = getTodayKey();
-        const todayRec = practiceStats.dailyRecords[today] || { count:0, totalSeconds:0 };
-        document.getElementById('todayCount').innerText = todayRec.count;
-        document.getElementById('todayDuration').innerText = Math.floor(todayRec.totalSeconds / 60);
-
-        let weeklySec = 0;
-        const now = new Date();
-        for (let i=0; i<7; i++) {
-            const d = new Date(now);
-            d.setDate(now.getDate() - i);
-            const key = d.toISOString().slice(0,10);
-            if (practiceStats.dailyRecords[key]) weeklySec += practiceStats.dailyRecords[key].totalSeconds;
-        }
-        const weeklyMins = Math.floor(weeklySec / 60);
-        document.getElementById('weeklyTotal').innerText = weeklyMins;
-        // 更新折叠标题摘要
-        document.getElementById('statsSummary').innerHTML = `今日 ${Math.floor(todayRec.totalSeconds/60)}分钟 / 本周 ${weeklyMins}分钟`;
-
-        // 更新图表
-        const labels = [];
-        const dataPoints = [];
-        for (let i=6; i>=0; i--) {
-            const d = new Date(now);
-            d.setDate(now.getDate() - i);
-            const key = d.toISOString().slice(0,10);
-            const mins = practiceStats.dailyRecords[key] ? Math.floor(practiceStats.dailyRecords[key].totalSeconds / 60) : 0;
-            labels.push(key.slice(5));
-            dataPoints.push(mins);
-        }
-        if (weeklyChart) weeklyChart.destroy();
-        const ctx = document.getElementById('weeklyChart').getContext('2d');
-        weeklyChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: '练习时长 (分钟)', data: dataPoints, backgroundColor: '#3b82f6', borderRadius: 8 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
-        });
-    }
-
-    // 自动停止计时器（15分钟 = 900秒）
-    let autoStopTimer = null;
-    function startAutoStopCheck() {
-        if (autoStopTimer) clearInterval(autoStopTimer);
-        autoStopTimer = setInterval(() => {
-            if (isPracticing && sessionSeconds >= 900) {
-                playDing(); playDing();
-                alert("🎉 太棒了！您已完成15分钟练习，获得成就感！ 🎉");
-                stopPractice();
-                addPracticeSession(sessionSeconds);
-            }
-        }, 1000);
-    }
-
-    // ---------- 原有全局变量 ----------
     let chordsDatabase = [];
     let selectedChordIds = new Set();
     let lastChordId = null;
     let sessionSeconds = 0;
     let totalSeconds = 0;
-    let practiceTimer = null;
-    let rotationInterval = null;
+    let practiceTimer = null, rotationInterval = null, countdownInterval = null, autoStopTimer = null;
     let currentIntervalSec = 5;
-    let currentChordObj = null;
-    let countdownInterval = null;
-    let isPracticing = false;
-    let isCountdownActive = false;
+    let isPracticing = false, isCountdownActive = false;
+    let weeklyChart = null;
 
+    // DOM
     const chordImg = document.getElementById('chordImg');
     const chordNameLabel = document.getElementById('chordNameLabel');
     const sessionTimeSpan = document.getElementById('sessionTime');
@@ -642,165 +710,212 @@
     const soundIcon = document.getElementById('soundIcon');
 
     function formatTime(sec) {
-        const mins = Math.floor(sec / 60);
-        const remainSec = sec % 60;
-        return `${mins.toString().padStart(2,'0')}:${remainSec.toString().padStart(2,'0')}`;
+        let m = Math.floor(sec / 60), s = sec % 60;
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
     function updateTimersDisplay() {
         sessionTimeSpan.innerText = formatTime(sessionSeconds);
         totalTimeSpan.innerText = formatTime(totalSeconds);
     }
 
-    function setChordImageWithLoading(imageUrl) {
-        chordImg.classList.add('loading');
-        const tempImg = new Image();
-        tempImg.onload = () => { chordImg.src = imageUrl; chordImg.classList.remove('loading'); };
-        tempImg.onerror = () => { chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='gray'%3E加载失败%3C/text%3E%3C/svg%3E"; chordImg.classList.remove('loading'); };
-        tempImg.src = imageUrl;
-    }
-
-    async function loadTotalSecondsFromCloud() {
+    async function loadTotalSeconds() {
         if (usingDemoMode) {
-            const saved = localStorage.getItem('chord_practice_total_seconds');
-            totalSeconds = saved && !isNaN(parseInt(saved)) ? parseInt(saved) : 0;
+            let v = localStorage.getItem('total_seconds_demo');
+            totalSeconds = v ? parseInt(v) : 0;
             updateTimersDisplay();
             return;
         }
         try {
-            const deviceId = getDeviceId();
-            const { data, error } = await mySupabase.from('user_practice_stats').select('total_seconds').eq('device_id', deviceId).maybeSingle();
+            const { data, error } = await supabaseClient.from('practice_users').select('total_seconds').eq('user_id', FIXED_USER_ID).single();
             if (error && error.code !== 'PGRST116') throw error;
             if (data) totalSeconds = data.total_seconds;
-            else { totalSeconds = 0; await mySupabase.from('user_practice_stats').insert([{ device_id: deviceId, total_seconds: 0 }]); }
+            else totalSeconds = 0;
             updateTimersDisplay();
-        } catch(err) { console.error(err); const saved = localStorage.getItem('chord_practice_total_seconds'); totalSeconds = saved && !isNaN(parseInt(saved)) ? parseInt(saved) : 0; updateTimersDisplay(); }
+        } catch(e) { console.error(e); totalSeconds = 0; updateTimersDisplay(); }
     }
-    async function saveTotalSecondsToCloud() {
-        if (usingDemoMode) { localStorage.setItem('chord_practice_total_seconds', totalSeconds); return; }
+
+    async function saveTotalSeconds() {
+        if (usingDemoMode) { localStorage.setItem('total_seconds_demo', totalSeconds); return; }
         try {
-            const deviceId = getDeviceId();
-            await mySupabase.from('user_practice_stats').update({ total_seconds: totalSeconds, updated_at: new Date() }).eq('device_id', deviceId);
-        } catch(err) { localStorage.setItem('chord_practice_total_seconds', totalSeconds); }
+            await supabaseClient.from('practice_users').upsert({ user_id: FIXED_USER_ID, total_seconds: totalSeconds, updated_at: new Date() });
+        } catch(e) { console.error(e); }
     }
-    function getDeviceId() {
-        let deviceId = localStorage.getItem('chord_device_id');
-        if (!deviceId) { deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('chord_device_id', deviceId); }
-        return deviceId;
+
+    async function addPracticeSession(seconds) {
+        const today = new Date().toISOString().slice(0,10);
+        if (usingDemoMode) {
+            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+            if (!stats[today]) stats[today] = { count: 0, totalSeconds: 0 };
+            stats[today].count++;
+            stats[today].totalSeconds += seconds;
+            localStorage.setItem('practice_stats_demo', JSON.stringify(stats));
+            updateStatsUI();
+            return;
+        }
+        let { data: existing } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).eq('date', today).maybeSingle();
+        if (existing) {
+            await supabaseClient.from('daily_stats').update({
+                count: existing.count + 1,
+                total_seconds: existing.total_seconds + seconds
+            }).eq('id', existing.id);
+        } else {
+            await supabaseClient.from('daily_stats').insert({ user_id: FIXED_USER_ID, date: today, count: 1, total_seconds: seconds });
+        }
+        await updateStatsUI();
+    }
+
+    async function updateStatsUI() {
+        const today = new Date().toISOString().slice(0,10);
+        let todayCount = 0, todaySec = 0, weeklySec = 0;
+        if (usingDemoMode) {
+            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+            if (stats[today]) { todayCount = stats[today].count; todaySec = stats[today].totalSeconds; }
+            for (let i=0; i<7; i++) {
+                let d = new Date(); d.setDate(d.getDate() - i);
+                let key = d.toISOString().slice(0,10);
+                if (stats[key]) weeklySec += stats[key].totalSeconds;
+            }
+        } else {
+            let sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            let { data } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).gte('date', sevenDaysAgo.toISOString().slice(0,10));
+            if (data) {
+                let todayRec = data.find(d => d.date === today);
+                if (todayRec) { todayCount = todayRec.count; todaySec = todayRec.total_seconds; }
+                weeklySec = data.reduce((s, d) => s + d.total_seconds, 0);
+            }
+        }
+        document.getElementById('todayCount').innerText = todayCount;
+        document.getElementById('todayDuration').innerText = Math.floor(todaySec / 60);
+        let weeklyMins = Math.floor(weeklySec / 60);
+        document.getElementById('weeklyTotal').innerText = weeklyMins;
+        document.getElementById('statsSummary').innerHTML = `今日 ${Math.floor(todaySec/60)}分钟 / 本周 ${weeklyMins}分钟`;
+
+        let labels = [], dataPoints = [];
+        let now = new Date();
+        for (let i=6; i>=0; i--) {
+            let d = new Date(now); d.setDate(now.getDate() - i);
+            let key = d.toISOString().slice(0,10);
+            let mins = 0;
+            if (usingDemoMode) {
+                let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+                if (stats[key]) mins = Math.floor(stats[key].totalSeconds / 60);
+            } else {
+                let { data } = await supabaseClient.from('daily_stats').select('total_seconds').eq('user_id', FIXED_USER_ID).eq('date', key).maybeSingle();
+                if (data) mins = Math.floor(data.total_seconds / 60);
+            }
+            labels.push(key.slice(5));
+            dataPoints.push(mins);
+        }
+        if (weeklyChart) weeklyChart.destroy();
+        let ctx = document.getElementById('weeklyChart').getContext('2d');
+        weeklyChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: '分钟', data: dataPoints, backgroundColor: '#3b82f6', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+        });
+    }
+
+    function setChordImage(imgUrl) {
+        chordImg.classList.add('loading');
+        let temp = new Image();
+        temp.onload = () => { chordImg.src = imgUrl; chordImg.classList.remove('loading'); };
+        temp.onerror = () => { chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='gray'%3E加载失败%3C/text%3E%3C/svg%3E"; chordImg.classList.remove('loading'); };
+        temp.src = imgUrl;
     }
 
     function pickRandomChord() {
-        const availableChords = chordsDatabase.filter(chord => selectedChordIds.has(chord.id));
-        if (availableChords.length === 0) {
-            chordNameLabel.innerText = "无选中和弦";
-            chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23fdd'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23944' font-size='14'%3E请选择和弦%3C/text%3E%3C/svg%3E";
-            return null;
-        }
-        if (availableChords.length === 1) {
-            const chord = availableChords[0];
-            currentChordObj = chord;
-            chordNameLabel.innerText = chord.name;
-            setChordImageWithLoading(chord.image_url);
-            lastChordId = chord.id;
-            return chord;
-        }
-        let candidates = availableChords;
-        if (lastChordId !== null) candidates = availableChords.filter(chord => chord.id !== lastChordId);
-        if (candidates.length === 0) candidates = availableChords;
-        const randomIndex = Math.floor(Math.random() * candidates.length);
-        const chord = candidates[randomIndex];
-        currentChordObj = chord;
+        let avail = chordsDatabase.filter(c => selectedChordIds.has(c.id));
+        if (avail.length === 0) { chordNameLabel.innerText = "无选中和弦"; return null; }
+        let candidates = avail;
+        if (lastChordId !== null && avail.length > 1) candidates = avail.filter(c => c.id !== lastChordId);
+        if (candidates.length === 0) candidates = avail;
+        let chord = candidates[Math.floor(Math.random() * candidates.length)];
         chordNameLabel.innerText = chord.name;
-        setChordImageWithLoading(chord.image_url);
+        setChordImage(chord.image_url);
         lastChordId = chord.id;
         playDing();
         return chord;
     }
 
     function stopRotation() {
-        if (rotationInterval) { clearInterval(rotationInterval); rotationInterval = null; window._nextSwitchTime = null; }
+        if (rotationInterval) clearInterval(rotationInterval);
         if (countdownInterval) clearInterval(countdownInterval);
+        rotationInterval = null;
         countdownHint.innerText = "练习已停止";
     }
+
     function startRotation() {
         stopRotation();
-        if (selectedChordIds.size === 0) { countdownHint.innerText = "⚠️ 请先选中和弦"; return; }
+        if (selectedChordIds.size === 0) { countdownHint.innerText = "请先选中和弦"; return; }
         pickRandomChord();
         rotationInterval = setInterval(() => {
             if (selectedChordIds.size > 0 && isPracticing) pickRandomChord();
-            else if (selectedChordIds.size === 0 && rotationInterval) { clearInterval(rotationInterval); rotationInterval = null; countdownHint.innerText = "无选中和弦，已暂停"; }
-            if (rotationInterval && isPracticing) window._nextSwitchTime = Date.now() + currentIntervalSec * 1000;
+            if (rotationInterval && isPracticing) window._nextSwitch = Date.now() + currentIntervalSec * 1000;
         }, currentIntervalSec * 1000);
-        window._nextSwitchTime = Date.now() + currentIntervalSec * 1000;
-        if (countdownInterval) clearInterval(countdownInterval);
-        const updateHint = () => {
-            if (!rotationInterval || !isPracticing) { if (!isPracticing) countdownHint.innerText = "练习已停止"; return; }
-            if (window._nextSwitchTime) { const remain = Math.ceil((window._nextSwitchTime - Date.now()) / 1000); if (remain >= 0) countdownHint.innerText = `⏳ 下次切换: ${remain} 秒`; else countdownHint.innerText = `🔄 即将切换...`; }
-        };
-        updateHint();
-        countdownInterval = setInterval(updateHint, 200);
+        window._nextSwitch = Date.now() + currentIntervalSec * 1000;
+        countdownInterval = setInterval(() => {
+            if (!rotationInterval || !isPracticing) return;
+            let remain = Math.ceil((window._nextSwitch - Date.now()) / 1000);
+            countdownHint.innerText = remain > 0 ? `⏳ 下次切换: ${remain} 秒` : `🔄 即将切换...`;
+        }, 200);
     }
 
     function showCountdown(callback) {
-        const overlay = document.createElement('div');
+        let overlay = document.createElement('div');
         overlay.className = 'countdown-overlay';
-        const contentDiv = document.createElement('div');
-        contentDiv.style.textAlign = 'center';
-        overlay.appendChild(contentDiv);
-        document.body.appendChild(overlay);
-        const numbers = ['3', '2', '1', '开始！'];
-        let index = 0;
-        function showNext() {
-            if (index >= numbers.length) {
+        let content = document.createElement('div'); content.style.textAlign = 'center';
+        overlay.appendChild(content); document.body.appendChild(overlay);
+        let steps = ['3', '2', '1', '开始！'], idx = 0;
+        function next() {
+            if (idx >= steps.length) {
                 overlay.style.opacity = '0';
-                setTimeout(() => { overlay.remove(); if (callback) callback(); }, 300);
+                setTimeout(() => { overlay.remove(); if(callback) callback(); }, 300);
                 return;
             }
-            const current = numbers[index];
-            contentDiv.innerHTML = '';
-            const span = document.createElement('div');
-            span.className = current === '开始！' ? 'countdown-text' : 'countdown-number';
-            span.textContent = current;
-            contentDiv.appendChild(span);
-            if (current !== '开始！') playBeep();
-            else playDing();
-            setTimeout(() => { index++; showNext(); }, 800);
+            content.innerHTML = '';
+            let span = document.createElement('div');
+            span.className = steps[idx] === '开始！' ? 'countdown-text' : 'countdown-number';
+            span.textContent = steps[idx];
+            content.appendChild(span);
+            if (steps[idx] !== '开始！') playBeep(); else playDing();
+            setTimeout(() => { idx++; next(); }, 800);
         }
-        showNext();
+        next();
     }
 
     function _startPracticeInternal() {
-        if (selectedChordIds.size === 0) {
-            alert("请先至少选择一个和弦再开始练习");
-            startStopBtn.innerHTML = "▶ 开始练习"; startStopBtn.style.background = "#10b981"; startStopBtn.classList.add("stopped");
-            isPracticing = false; isCountdownActive = false;
-            return;
-        }
+        if (selectedChordIds.size === 0) { alert("请选择至少一个和弦"); return; }
         isPracticing = true; isCountdownActive = false;
         sessionSeconds = 0; updateTimersDisplay();
         if (practiceTimer) clearInterval(practiceTimer);
         practiceTimer = setInterval(() => {
-            if (isPracticing) { sessionSeconds++; totalSeconds++; updateTimersDisplay(); saveTotalSecondsToCloud(); }
+            if (isPracticing) { sessionSeconds++; totalSeconds++; updateTimersDisplay(); saveTotalSeconds(); }
         }, 1000);
         startRotation();
-        startAutoStopCheck();
+        if (autoStopTimer) clearInterval(autoStopTimer);
+        autoStopTimer = setInterval(() => {
+            if (isPracticing && sessionSeconds >= 900) {
+                playDing(); playDing();
+                alert("🎉 太棒了！您已完成15分钟练习！ 🎉");
+                stopPractice();
+                addPracticeSession(sessionSeconds);
+            }
+        }, 1000);
         startStopBtn.innerHTML = "⏹ 停止练习"; startStopBtn.style.background = "#ef4444"; startStopBtn.classList.remove("stopped");
     }
 
     function startPracticeWithCountdown() {
         if (isPracticing || isCountdownActive) return;
-        if (selectedChordIds.size === 0) { alert("请先至少选择一个和弦再开始练习"); return; }
+        if (selectedChordIds.size === 0) { alert("请先选择和弦"); return; }
         isCountdownActive = true;
         startStopBtn.style.opacity = "0.7";
-        showCountdown(() => {
-            startStopBtn.style.opacity = "1";
-            _startPracticeInternal();
-        });
+        showCountdown(() => { startStopBtn.style.opacity = "1"; _startPracticeInternal(); });
     }
 
     function stopPractice() {
         if (isCountdownActive) {
-            const overlay = document.querySelector('.countdown-overlay');
-            if (overlay) overlay.remove();
+            let ov = document.querySelector('.countdown-overlay');
+            if (ov) ov.remove();
             isCountdownActive = false;
             startStopBtn.style.opacity = "1";
             startStopBtn.innerHTML = "▶ 开始练习"; startStopBtn.style.background = "#10b981"; startStopBtn.classList.add("stopped");
@@ -809,8 +924,8 @@
         if (!isPracticing) return;
         if (sessionSeconds > 0) addPracticeSession(sessionSeconds);
         isPracticing = false;
-        if (practiceTimer) { clearInterval(practiceTimer); practiceTimer = null; }
-        if (autoStopTimer) { clearInterval(autoStopTimer); autoStopTimer = null; }
+        if (practiceTimer) clearInterval(practiceTimer);
+        if (autoStopTimer) clearInterval(autoStopTimer);
         stopRotation();
         startStopBtn.innerHTML = "▶ 开始练习"; startStopBtn.style.background = "#10b981"; startStopBtn.classList.add("stopped");
         countdownHint.innerText = "练习已停止";
@@ -819,69 +934,12 @@
     function togglePractice() { if (isPracticing) stopPractice(); else startPracticeWithCountdown(); }
     function restartRotation() { if (selectedChordIds.size === 0 || !isPracticing) { if (selectedChordIds.size === 0 && isPracticing) stopPractice(); return; } stopRotation(); startRotation(); }
 
-    // 渲染和弦列表、删除上传等
-    function renderChordList() {
-        if (!chordListContainer) return;
-        if (chordsDatabase.length === 0) { chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>'; selectedCountSpan.innerText = "0"; return; }
-        let html = '';
-        chordsDatabase.forEach(chord => {
-            const isSelected = selectedChordIds.has(chord.id);
-            html += `<div class="chord-tag ${isSelected ? 'selected' : ''}" data-id="${chord.id}"><span>🎵 ${escapeHtml(chord.name)}</span><span class="delete-icon" data-delete-id="${chord.id}">✕</span></div>`;
-        });
-        chordListContainer.innerHTML = html;
-        selectedCountSpan.innerText = selectedChordIds.size;
-        chordListContainer.querySelectorAll('.chord-tag').forEach(el => {
-            const chordId = parseInt(el.getAttribute('data-id'));
-            el.addEventListener('click', (e) => { if (e.target.classList.contains('delete-icon')) return; toggleSelectChord(chordId); });
-            const delBtn = el.querySelector('.delete-icon');
-            if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteChordById(chordId); });
-        });
-    }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    function toggleSelectChord(chordId) {
-        if (selectedChordIds.has(chordId)) selectedChordIds.delete(chordId);
-        else selectedChordIds.add(chordId);
-        renderChordList();
-        if (selectedChordIds.size === 0) { if (isPracticing) stopPractice(); chordNameLabel.innerText = "无选中和弦"; chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E"; }
-        else { if (isPracticing && !rotationInterval) startRotation(); else if (isPracticing) pickRandomChord(); }
-    }
-    async function deleteChordById(id) {
-        if (usingDemoMode) { chordsDatabase = chordsDatabase.filter(c => c.id !== id); if (selectedChordIds.has(id)) selectedChordIds.delete(id); renderChordList(); if (selectedChordIds.size === 0 && isPracticing) stopPractice(); else if (isPracticing) pickRandomChord(); }
-        else { try { await mySupabase.from('chords').delete().eq('id', id); await loadChordsFromSupabase(); } catch(err) { alert("删除失败:"+err.message); } }
-    }
-    async function uploadChord() {
-        const name = chordNameInput.value.trim(); const file = imageUploadInput.files[0];
-        if (!name || !file) { alert("请输入和弦名称并选择图片"); return; }
-        if (usingDemoMode) {
-            const localUrl = URL.createObjectURL(file);
-            const newId = Date.now();
-            chordsDatabase.push({ id: newId, name: name, image_url: localUrl, created_at: new Date() });
-            selectedChordIds.add(newId);
-            renderChordList();
-            chordNameInput.value = ''; imageUploadInput.value = ''; previewWrap.style.display = 'none';
-            if (isPracticing && !rotationInterval && selectedChordIds.size > 0) startRotation(); else if (isPracticing) pickRandomChord();
-            alert("本地模式已添加 (刷新页面会丢失，请配置正式 Supabase)");
-        } else {
-            try {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
-                const { error: uploadError } = await mySupabase.storage.from(STORAGE_BUCKET).upload(`public/${fileName}`, file);
-                if (uploadError) throw uploadError;
-                const { data: publicUrlData } = mySupabase.storage.from(STORAGE_BUCKET).getPublicUrl(`public/${fileName}`);
-                const imageUrl = publicUrlData.publicUrl;
-                await mySupabase.from('chords').insert([{ name: name, image_url: imageUrl }]);
-                alert("上传成功!");
-                chordNameInput.value = ''; imageUploadInput.value = ''; previewWrap.style.display = 'none';
-                await loadChordsFromSupabase();
-            } catch(err) { alert("上传失败: " + err.message); }
-        }
-    }
-    async function loadChordsFromSupabase() {
+    async function loadChords() {
         if (usingDemoMode) {
             if (chordsDatabase.length === 0) {
                 chordsDatabase = [
-                    { id: 1, name: "C Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=C+Major" },
-                    { id: 2, name: "G Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G+Major" },
+                    { id: 1, name: "C Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=C" },
+                    { id: 2, name: "G Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G" },
                     { id: 3, name: "Am", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=Am" }
                 ];
                 chordsDatabase.forEach(c => selectedChordIds.add(c.id));
@@ -889,40 +947,82 @@
             } else renderChordList();
             return;
         }
-        try {
-            const { data, error } = await mySupabase.from('chords').select('*').order('created_at', {ascending: false});
-            if (error) throw error;
-            chordsDatabase = data || [];
-            if (selectedChordIds.size === 0 && chordsDatabase.length > 0) chordsDatabase.forEach(c => selectedChordIds.add(c.id));
-            else { const newSelected = new Set(); for (let c of chordsDatabase) if (selectedChordIds.has(c.id)) newSelected.add(c.id); selectedChordIds = newSelected; if (selectedChordIds.size === 0 && chordsDatabase.length) chordsDatabase.forEach(c => selectedChordIds.add(c.id)); }
-            renderChordList();
-        } catch(err) { console.error(err); alert("加载和弦失败: " + err.message); }
+        let { data } = await supabaseClient.from('chords').select('*').order('created_at');
+        chordsDatabase = data || [];
+        if (selectedChordIds.size === 0 && chordsDatabase.length) chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+        renderChordList();
     }
 
-    // 折叠面板交互
-    const statsHeader = document.getElementById('statsHeader');
-    const statsPanel = document.getElementById('statsPanel');
-    statsHeader.addEventListener('click', () => {
-        statsPanel.classList.toggle('open');
-    });
+    function renderChordList() {
+        if (chordsDatabase.length === 0) { chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>'; selectedCountSpan.innerText = "0"; return; }
+        let html = '';
+        chordsDatabase.forEach(c => {
+            let sel = selectedChordIds.has(c.id);
+            html += `<div class="chord-tag ${sel ? 'selected' : ''}" data-id="${c.id}"><span>🎵 ${escapeHtml(c.name)}</span><span class="delete-icon" data-id="${c.id}">✕</span></div>`;
+        });
+        chordListContainer.innerHTML = html;
+        selectedCountSpan.innerText = selectedChordIds.size;
+        document.querySelectorAll('.chord-tag').forEach(el => {
+            let id = parseInt(el.dataset.id);
+            el.addEventListener('click', (e) => { if (!e.target.classList.contains('delete-icon')) toggleSelect(id); });
+            let del = el.querySelector('.delete-icon');
+            if (del) del.addEventListener('click', (e) => { e.stopPropagation(); deleteChord(id); });
+        });
+    }
 
-    // 声音开关
-    soundToggleBtn.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        soundIcon.innerText = soundEnabled ? "🔊" : "🔇";
-    });
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-    applyIntervalBtn.onclick = () => { let val = parseInt(intervalInput.value); if (isNaN(val) || val < 1) val = 3; currentIntervalSec = val; if (isPracticing && rotationInterval) restartRotation(); };
+    function toggleSelect(id) {
+        if (selectedChordIds.has(id)) selectedChordIds.delete(id);
+        else selectedChordIds.add(id);
+        renderChordList();
+        if (selectedChordIds.size === 0 && isPracticing) stopPractice();
+        else if (isPracticing && !rotationInterval) startRotation();
+        else if (isPracticing) pickRandomChord();
+    }
+
+    async function deleteChord(id) {
+        if (usingDemoMode) { chordsDatabase = chordsDatabase.filter(c => c.id !== id); selectedChordIds.delete(id); renderChordList(); return; }
+        await supabaseClient.from('chords').delete().eq('id', id);
+        await loadChords();
+    }
+
+    async function uploadChord() {
+        let name = chordNameInput.value.trim(), file = imageUploadInput.files[0];
+        if (!name || !file) { alert("请输入名称并选择图片"); return; }
+        if (usingDemoMode) {
+            let url = URL.createObjectURL(file);
+            chordsDatabase.push({ id: Date.now(), name, image_url: url });
+            selectedChordIds.add(chordsDatabase[chordsDatabase.length-1].id);
+            renderChordList();
+            chordNameInput.value = ''; imageUploadInput.value = ''; previewWrap.style.display = 'none';
+            alert("本地模式已添加 (刷新页面会丢失)");
+            return;
+        }
+        let ext = file.name.split('.').pop();
+        let fileName = `${Date.now()}_${Math.random()}.${ext}`;
+        await supabaseClient.storage.from(STORAGE_BUCKET).upload(`public/${fileName}`, file);
+        let { data: urlData } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(`public/${fileName}`);
+        await supabaseClient.from('chords').insert([{ name, image_url: urlData.publicUrl }]);
+        await loadChords();
+        chordNameInput.value = ''; imageUploadInput.value = ''; previewWrap.style.display = 'none';
+        alert("上传成功");
+    }
+
+    // 事件绑定
+    applyIntervalBtn.onclick = () => { let v = parseInt(intervalInput.value); if (v>0) currentIntervalSec = v; if (isPracticing && rotationInterval) restartRotation(); };
     startStopBtn.onclick = togglePractice;
     uploadBtn.onclick = uploadChord;
-    imageUploadInput.onchange = (e) => { if (e.target.files.length) { const url = URL.createObjectURL(e.target.files[0]); previewImg.src = url; previewWrap.style.display = 'flex'; } else previewWrap.style.display = 'none'; };
-    selectAllBtn.onclick = () => { chordsDatabase.forEach(c => selectedChordIds.add(c.id)); renderChordList(); if (isPracticing && !rotationInterval && selectedChordIds.size) startRotation(); else if (isPracticing) pickRandomChord(); };
+    imageUploadInput.onchange = (e) => { if (e.target.files[0]) { previewImg.src = URL.createObjectURL(e.target.files[0]); previewWrap.style.display = 'flex'; } else previewWrap.style.display = 'none'; };
+    selectAllBtn.onclick = () => { chordsDatabase.forEach(c => selectedChordIds.add(c.id)); renderChordList(); if (isPracticing && !rotationInterval && selectedChordIds.size) startRotation(); };
     deselectAllBtn.onclick = () => { if (isPracticing) stopPractice(); selectedChordIds.clear(); renderChordList(); chordNameLabel.innerText = "--"; chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E"; };
+    soundToggleBtn.onclick = () => { soundEnabled = !soundEnabled; soundIcon.innerText = soundEnabled ? "🔊" : "🔇"; };
+    document.getElementById('statsHeader').onclick = () => document.getElementById('statsPanel').classList.toggle('open');
 
     async function init() {
-        loadStats();
-        await loadTotalSecondsFromCloud();
-        await loadChordsFromSupabase();
+        await loadTotalSeconds();
+        await loadChords();
+        await updateStatsUI();
         chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='16'%3E点击开始练习%3C/text%3E%3C/svg%3E";
     }
     init();
