@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>智能和弦练习室 | 动态随机练习</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 添加 Chart.js 用于图表 -->
+    <!-- Chart.js 轻量图表库 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -26,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* 顶部栏增加声音图标 */
+        /* 顶部栏 */
         .stats-bar {
             background: white;
             border-radius: 32px;
@@ -185,40 +185,64 @@
 
         .next-timer { margin-top: 18px; font-size: 0.9rem; color: #475569; }
 
-        /* 统计卡片区域 */
-        .stats-cards {
+        /* ========== 小巧的统计折叠面板 ========== */
+        .stats-collapsible {
+            margin-bottom: 20px;
+        }
+        .stats-header {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
+            align-items: center;
+            gap: 12px;
             background: white;
-            border-radius: 28px;
-            padding: 18px 24px;
-            flex: 1;
-            min-width: 150px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            text-align: center;
+            padding: 10px 20px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            width: fit-content;
+            transition: 0.2s;
         }
-        .stat-number {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #3b82f6;
+        .stats-header:hover { background: #f1f5f9; }
+        .stats-header span:first-child { font-size: 1.2rem; }
+        .stats-header .stats-summary {
+            font-size: 0.85rem;
+            color: #475569;
         }
-        .stat-label {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 6px;
-        }
-        .chart-container {
+        .stats-panel {
             background: white;
             border-radius: 28px;
             padding: 20px;
-            margin-bottom: 24px;
+            margin-top: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: none;
         }
-        canvas { max-height: 250px; width: 100%; }
+        .stats-panel.open { display: block; }
+        .mini-stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .mini-stat {
+            flex: 1;
+            text-align: center;
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 12px;
+        }
+        .mini-stat .number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #3b82f6;
+        }
+        .mini-stat .label {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+        .chart-container {
+            max-height: 200px;
+            margin-top: 12px;
+        }
+        canvas { max-height: 180px; width: 100%; }
 
         .management {
             background: #ffffffdd;
@@ -361,7 +385,7 @@
 </head>
 <body>
 <div class="container">
-    <!-- 顶部栏：计时 + 声音开关 -->
+    <!-- 顶部栏 -->
     <div class="stats-bar">
         <div class="timer-panel">
             <div class="timer-item">
@@ -386,23 +410,32 @@
         </div>
     </div>
 
-    <!-- 统计卡片 + 图表区 -->
-    <div class="stats-cards">
-        <div class="stat-card">
-            <div class="stat-number" id="todayCount">0</div>
-            <div class="stat-label">今日练习次数</div>
+    <!-- 小巧可折叠统计面板 -->
+    <div class="stats-collapsible">
+        <div class="stats-header" id="statsHeader">
+            <span>📊</span>
+            <span class="stats-summary" id="statsSummary">今日 0分钟 / 本周 0分钟</span>
+            <span>▼</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-number" id="todayDuration">0</div>
-            <div class="stat-label">今日练习(分钟)</div>
+        <div class="stats-panel" id="statsPanel">
+            <div class="mini-stats-row">
+                <div class="mini-stat">
+                    <div class="number" id="todayCount">0</div>
+                    <div class="label">今日练习次数</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="number" id="todayDuration">0</div>
+                    <div class="label">今日练习(分钟)</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="number" id="weeklyTotal">0</div>
+                    <div class="label">本周总时长(分钟)</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="weeklyChart" width="400" height="160"></canvas>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number" id="weeklyTotal">0</div>
-            <div class="stat-label">本周总时长(分钟)</div>
-        </div>
-    </div>
-    <div class="chart-container">
-        <canvas id="weeklyChart" width="400" height="200"></canvas>
     </div>
 
     <div class="practice-control">
@@ -498,7 +531,7 @@
     }
 
     // ---------- 统计存储 ----------
-    let practiceStats = { dailyRecords: {} }; // { "2025-01-01": { count:3, totalSeconds: 540 } }
+    let practiceStats = { dailyRecords: {} };
     let weeklyChart = null;
 
     function loadStats() {
@@ -527,7 +560,6 @@
         document.getElementById('todayCount').innerText = todayRec.count;
         document.getElementById('todayDuration').innerText = Math.floor(todayRec.totalSeconds / 60);
 
-        // 计算本周总时长 (最近7天)
         let weeklySec = 0;
         const now = new Date();
         for (let i=0; i<7; i++) {
@@ -536,7 +568,10 @@
             const key = d.toISOString().slice(0,10);
             if (practiceStats.dailyRecords[key]) weeklySec += practiceStats.dailyRecords[key].totalSeconds;
         }
-        document.getElementById('weeklyTotal').innerText = Math.floor(weeklySec / 60);
+        const weeklyMins = Math.floor(weeklySec / 60);
+        document.getElementById('weeklyTotal').innerText = weeklyMins;
+        // 更新折叠标题摘要
+        document.getElementById('statsSummary').innerHTML = `今日 ${Math.floor(todayRec.totalSeconds/60)}分钟 / 本周 ${weeklyMins}分钟`;
 
         // 更新图表
         const labels = [];
@@ -564,11 +599,9 @@
         if (autoStopTimer) clearInterval(autoStopTimer);
         autoStopTimer = setInterval(() => {
             if (isPracticing && sessionSeconds >= 900) {
-                // 满15分钟自动停止
-                playDing(); playDing(); // 完成提示音
+                playDing(); playDing();
                 alert("🎉 太棒了！您已完成15分钟练习，获得成就感！ 🎉");
                 stopPractice();
-                // 记录本次练习
                 addPracticeSession(sessionSeconds);
             }
         }, 1000);
@@ -679,7 +712,7 @@
         chordNameLabel.innerText = chord.name;
         setChordImageWithLoading(chord.image_url);
         lastChordId = chord.id;
-        playDing();  // 切换和弦时播放“叮”
+        playDing();
         return chord;
     }
 
@@ -774,7 +807,6 @@
             return;
         }
         if (!isPracticing) return;
-        // 记录本次练习成绩
         if (sessionSeconds > 0) addPracticeSession(sessionSeconds);
         isPracticing = false;
         if (practiceTimer) { clearInterval(practiceTimer); practiceTimer = null; }
@@ -787,7 +819,7 @@
     function togglePractice() { if (isPracticing) stopPractice(); else startPracticeWithCountdown(); }
     function restartRotation() { if (selectedChordIds.size === 0 || !isPracticing) { if (selectedChordIds.size === 0 && isPracticing) stopPractice(); return; } stopRotation(); startRotation(); }
 
-    // 渲染和弦列表、删除上传等 (与原逻辑一致)
+    // 渲染和弦列表、删除上传等
     function renderChordList() {
         if (!chordListContainer) return;
         if (chordsDatabase.length === 0) { chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>'; selectedCountSpan.innerText = "0"; return; }
@@ -866,6 +898,13 @@
             renderChordList();
         } catch(err) { console.error(err); alert("加载和弦失败: " + err.message); }
     }
+
+    // 折叠面板交互
+    const statsHeader = document.getElementById('statsHeader');
+    const statsPanel = document.getElementById('statsPanel');
+    statsHeader.addEventListener('click', () => {
+        statsPanel.classList.toggle('open');
+    });
 
     // 声音开关
     soundToggleBtn.addEventListener('click', () => {
