@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>智能和弦练习室 | 动态随机练习</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f7f9fc;
+            margin: 0;
+            padding: 20px;
+            color: #1e2a3a;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 32px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .timer-panel {
+            display: flex;
+            gap: 28px;
+            background: #f1f5f9;
+            padding: 8px 20px;
+            border-radius: 60px;
+        }
+
+        .timer-item {
+            text-align: center;
+        }
+
+        .timer-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .timer-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-feature-settings: "tnum";
+            line-height: 1.2;
+            color: #0f172a;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 6px 18px;
+            border-radius: 48px;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        select, input {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
+
+        button {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button.secondary {
+            background: #334155;
+        }
+
+        button.danger {
+            background: #ef4444;
+        }
+
+        button.success {
+            background: #10b981;
+        }
+
+        .chord-showcase {
+            background: white;
+            border-radius: 48px;
+            padding: 30px 20px 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .chord-image-area {
+            background: #fefce8;
+            min-height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 32px;
+            margin-bottom: 20px;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 图片加载中的占位效果 */
+        .image-loading {
+            position: relative;
+        }
+
+        .image-loading::before {
+            content: "🔄 加载中...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        #chordImg {
+            max-width: 100%;
+            max-height: 260px;
+            object-fit: contain;
+            border-radius: 24px;
+            background: #fffaf0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: opacity 0.2s ease;
+        }
+
+        #chordImg.loading {
+            opacity: 0.5;
+        }
+
+        .chord-name-badge {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e293b, #2d3a4b);
+            display: inline-block;
+            padding: 8px 32px;
+            border-radius: 60px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .next-timer {
+            margin-top: 18px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .management {
+            background: #ffffffdd;
+            backdrop-filter: blur(2px);
+            border-radius: 40px;
+            padding: 24px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .upload-card {
+            background: #f1f5f9;
+            border-radius: 28px;
+            padding: 20px;
+            flex: 1.2;
+            min-width: 240px;
+        }
+
+        .chord-list-card {
+            background: #f1f5f9;
+            border-radius: 28px;
+            padding: 20px;
+            flex: 2;
+            min-width: 260px;
+        }
+
+        .chord-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .chord-tag {
+            background: white;
+            border-radius: 100px;
+            padding: 6px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: 0.1s;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+        }
+
+        .chord-tag.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .chord-tag .delete-icon {
+            font-weight: bold;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .chord-tag.selected .delete-icon {
+            background: #ffffffaa;
+            color: #b91c1c;
+        }
+
+        .upload-preview {
+            margin-top: 15px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+        }
+
+        h3 {
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        .info-note {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .practice-control {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #startStopBtn {
+            font-size: 1.2rem;
+            padding: 12px 32px;
+            background: #10b981;
+        }
+
+        #startStopBtn.stopped {
+            background: #3b82f6;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px;
+            }
+            .timer-value {
+                font-size: 1.3rem;
+            }
+            .chord-name-badge {
+                font-size: 1.5rem;
+                padding: 5px 20px;
+            }
+            .stats-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .control-group {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="stats-bar">
+        <div class="timer-panel">
+            <div class="timer-item">
+                <div class="timer-label">本次练习</div>
+                <div class="timer-value" id="sessionTime">00:00</div>
+            </div>
+            <div class="timer-item">
+                <div class="timer-label">累计总时长</div>
+                <div class="timer-value" id="totalTime">00:00</div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label>⏱️间隔(s)</label>
+            <input type="number" id="intervalInput" min="1" max="60" value="5" step="1" style="width: 75px;">
+            <button id="applyIntervalBtn" class="secondary">应用</button>
+        </div>
+    </div>
+
+    <div class="practice-control">
+        <button id="startStopBtn" class="success stopped">▶ 开始练习</button>
+    </div>
+
+    <div class="chord-showcase">
+        <div class="chord-image-area">
+            <img id="chordImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='16'%3E点击开始练习%3C/text%3E%3C/svg%3E" alt="当前和弦图">
+        </div>
+        <div class="chord-name-badge" id="chordNameLabel">--</div>
+        <div class="next-timer" id="countdownHint">未开始练习</div>
+    </div>
+
+    <div class="management">
+        <div class="flex-row">
+            <div class="upload-card">
+                <h3>📤 上传和弦图 + 名称</h3>
+                <input type="text" id="chordNameInput" placeholder="和弦名称 (如: C Major, Am)" style="width:100%; margin-bottom:12px;">
+                <input type="file" id="imageUpload" accept="image/*" style="width:100%; margin-bottom:12px;">
+                <button id="uploadBtn">⬆️ 上传到服务器</button>
+                <div class="upload-preview" id="previewWrap" style="display:none;">
+                    <span>🖼️ 预览:</span>
+                    <img id="previewImg" width="40" height="40" style="border-radius: 12px;">
+                </div>
+                <div class="info-note">※ 上传后所有设备同步，图片存储于Supabase Storage</div>
+            </div>
+            <div class="chord-list-card">
+                <h3>🎸 可选和弦 (点击选择/反选)</h3>
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+                    <button id="selectAllBtn" class="secondary" style="padding: 4px 14px;">全选</button>
+                    <button id="deselectAllBtn" class="secondary" style="padding: 4px 14px;">清空</button>
+                    <span style="font-size:0.8rem; color:#475569;">已选 <span id="selectedCount">0</span> 个和弦</span>
+                </div>
+                <div id="chordListContainer" class="chord-grid">
+                    <div style="color:#9ca3af;">加载和弦库中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== Supabase 配置 ====================
+    const MY_SUPABASE_URL = 'https://bnsbjgyulputgmqixjzs.supabase.co';      // 替换为您的 URL
+    const MY_SUPABASE_ANON_KEY = 'sb_publishable_AMpdOLRMYhtY32EbVrhEUg_d58mXmte';                    // 替换为您的 anon key
+    const STORAGE_BUCKET = 'chord_images';                            // 存储桶名称
+    // ======================================================
+
+    // 创建 Supabase 客户端
+    let mySupabase = null;
+    let usingDemoMode = false;
+
+    if (MY_SUPABASE_URL.includes('your-project') || MY_SUPABASE_ANON_KEY.includes('your-anon-key')) {
+        console.warn("⚠️ 未配置有效的 Supabase URL 和 Key，将启用本地演示模式");
+        usingDemoMode = true;
+    } else {
+        try {
+            const { createClient } = supabase;
+            mySupabase = createClient(MY_SUPABASE_URL, MY_SUPABASE_ANON_KEY);
+            console.log("✅ Supabase 客户端初始化成功");
+        } catch(e) {
+            console.error("Supabase 初始化失败:", e);
+            usingDemoMode = true;
+        }
+    }
+
+    // 全局数据
+    let chordsDatabase = [];
+    let selectedChordIds = new Set();
+    let lastChordId = null;
+
+    // 计时相关
+    let sessionSeconds = 0;
+    let totalSeconds = 0;
+    let practiceTimer = null;
+    let rotationInterval = null;
+    let currentIntervalSec = 5;
+    let currentChordObj = null;
+    let countdownInterval = null;
+    let isPracticing = false;
+
+    // DOM 元素
+    const chordImg = document.getElementById('chordImg');
+    const chordNameLabel = document.getElementById('chordNameLabel');
+    const sessionTimeSpan = document.getElementById('sessionTime');
+    const totalTimeSpan = document.getElementById('totalTime');
+    const intervalInput = document.getElementById('intervalInput');
+    const applyIntervalBtn = document.getElementById('applyIntervalBtn');
+    const startStopBtn = document.getElementById('startStopBtn');
+    const chordListContainer = document.getElementById('chordListContainer');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const chordNameInput = document.getElementById('chordNameInput');
+    const imageUploadInput = document.getElementById('imageUpload');
+    const previewWrap = document.getElementById('previewWrap');
+    const previewImg = document.getElementById('previewImg');
+    const countdownHint = document.getElementById('countdownHint');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const deselectAllBtn = document.getElementById('deselectAllBtn');
+
+    function formatTime(sec) {
+        const mins = Math.floor(sec / 60);
+        const remainSec = sec % 60;
+        return `${mins.toString().padStart(2,'0')}:${remainSec.toString().padStart(2,'0')}`;
+    }
+
+    function updateTimersDisplay() {
+        sessionTimeSpan.innerText = formatTime(sessionSeconds);
+        totalTimeSpan.innerText = formatTime(totalSeconds);
+    }
+
+    // 图片加载增强函数 - 确保图片能及时更新
+    function setChordImageWithLoading(imageUrl) {
+        // 添加加载状态类
+        chordImg.classList.add('loading');
+
+        // 创建一个新的 Image 对象预加载
+        const tempImg = new Image();
+
+        tempImg.onload = () => {
+            // 图片加载完成后更新 src
+            chordImg.src = imageUrl;
+            chordImg.classList.remove('loading');
+        };
+
+        tempImg.onerror = () => {
+            // 加载失败时显示占位图
+            chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='gray'%3E图片加载失败%3C/text%3E%3C/svg%3E";
+            chordImg.classList.remove('loading');
+        };
+
+        // 开始加载图片
+        tempImg.src = imageUrl;
+    }
+
+    // 从 Supabase 加载总时间
+    async function loadTotalSecondsFromCloud() {
+        if (usingDemoMode) {
+            const saved = localStorage.getItem('chord_practice_total_seconds');
+            totalSeconds = saved && !isNaN(parseInt(saved)) ? parseInt(saved) : 0;
+            updateTimersDisplay();
+            return;
+        }
+
+        try {
+            const deviceId = getDeviceId();
+            const { data, error } = await mySupabase
+                .from('user_practice_stats')
+                .select('total_seconds')
+                .eq('device_id', deviceId)
+                .maybeSingle();
+
+            if (error && error.code !== 'PGRST116') throw error;
+
+            if (data) {
+                totalSeconds = data.total_seconds;
+            } else {
+                totalSeconds = 0;
+                await mySupabase.from('user_practice_stats').insert([{ device_id: deviceId, total_seconds: 0 }]);
+            }
+            updateTimersDisplay();
+        } catch (err) {
+            console.error("加载总时间失败:", err);
+            const saved = localStorage.getItem('chord_practice_total_seconds');
+            totalSeconds = saved && !isNaN(parseInt(saved)) ? parseInt(saved) : 0;
+            updateTimersDisplay();
+        }
+    }
+
+    async function saveTotalSecondsToCloud() {
+        if (usingDemoMode) {
+            localStorage.setItem('chord_practice_total_seconds', totalSeconds);
+            return;
+        }
+
+        try {
+            const deviceId = getDeviceId();
+            const { error } = await mySupabase
+                .from('user_practice_stats')
+                .update({ total_seconds: totalSeconds, updated_at: new Date() })
+                .eq('device_id', deviceId);
+
+            if (error) throw error;
+        } catch (err) {
+            console.error("保存总时间失败:", err);
+            localStorage.setItem('chord_practice_total_seconds', totalSeconds);
+        }
+    }
+
+    function getDeviceId() {
+        let deviceId = localStorage.getItem('chord_device_id');
+        if (!deviceId) {
+            deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chord_device_id', deviceId);
+        }
+        return deviceId;
+    }
+
+    // 随机选择和弦 - 修复图片加载问题
+    function pickRandomChord() {
+        const availableChords = chordsDatabase.filter(chord => selectedChordIds.has(chord.id));
+        if (availableChords.length === 0) {
+            chordNameLabel.innerText = "无选中和弦";
+            chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23fdd'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23944' font-size='14'%3E请选择和弦%3C/text%3E%3C/svg%3E";
+            return null;
+        }
+
+        if (availableChords.length === 1) {
+            const chord = availableChords[0];
+            currentChordObj = chord;
+            chordNameLabel.innerText = chord.name;
+            // 使用增强的图片加载函数
+            setChordImageWithLoading(chord.image_url);
+            lastChordId = chord.id;
+            return chord;
+        }
+
+        let candidates = availableChords;
+        if (lastChordId !== null) {
+            candidates = availableChords.filter(chord => chord.id !== lastChordId);
+        }
+
+        if (candidates.length === 0) {
+            candidates = availableChords;
+        }
+
+        const randomIndex = Math.floor(Math.random() * candidates.length);
+        const chord = candidates[randomIndex];
+        currentChordObj = chord;
+        chordNameLabel.innerText = chord.name;
+        // 使用增强的图片加载函数，确保图片及时更新
+        setChordImageWithLoading(chord.image_url);
+        lastChordId = chord.id;
+        return chord;
+    }
+
+    function stopRotation() {
+        if (rotationInterval) {
+            clearInterval(rotationInterval);
+            rotationInterval = null;
+            window._nextSwitchTime = null;
+        }
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownHint.innerText = "练习已停止";
+    }
+
+    function startRotation() {
+        stopRotation();
+        if (selectedChordIds.size === 0) {
+            countdownHint.innerText = "⚠️ 请先选中和弦";
+            return;
+        }
+
+        pickRandomChord();
+
+        rotationInterval = setInterval(() => {
+            if (selectedChordIds.size > 0 && isPracticing) {
+                pickRandomChord();
+            } else if (selectedChordIds.size === 0) {
+                if (rotationInterval) {
+                    clearInterval(rotationInterval);
+                    rotationInterval = null;
+                    countdownHint.innerText = "无选中和弦，已暂停";
+                }
+            }
+            if (rotationInterval && isPracticing) {
+                window._nextSwitchTime = Date.now() + currentIntervalSec * 1000;
+            }
+        }, currentIntervalSec * 1000);
+
+        window._nextSwitchTime = Date.now() + currentIntervalSec * 1000;
+
+        if (countdownInterval) clearInterval(countdownInterval);
+        const updateHint = () => {
+            if (!rotationInterval || !isPracticing) {
+                if (!isPracticing) countdownHint.innerText = "练习已停止";
+                return;
+            }
+            if (window._nextSwitchTime) {
+                const remain = Math.ceil((window._nextSwitchTime - Date.now()) / 1000);
+                if (remain >= 0) countdownHint.innerText = `⏳ 下次切换: ${remain} 秒`;
+                else countdownHint.innerText = `🔄 即将切换...`;
+            }
+        };
+        updateHint();
+        countdownInterval = setInterval(updateHint, 200);
+    }
+
+    function startPractice() {
+        if (selectedChordIds.size === 0) {
+            alert("请先至少选择一个和弦再开始练习");
+            return;
+        }
+
+        isPracticing = true;
+
+        if (practiceTimer) clearInterval(practiceTimer);
+        practiceTimer = setInterval(() => {
+            if (isPracticing) {
+                sessionSeconds++;
+                totalSeconds++;
+                updateTimersDisplay();
+                saveTotalSecondsToCloud();
+            }
+        }, 1000);
+
+        startRotation();
+
+        startStopBtn.innerHTML = "⏹ 停止练习";
+        startStopBtn.classList.remove("stopped");
+        startStopBtn.style.background = "#ef4444";
+    }
+
+    function stopPractice() {
+        isPracticing = false;
+
+        if (practiceTimer) {
+            clearInterval(practiceTimer);
+            practiceTimer = null;
+        }
+
+        stopRotation();
+
+        startStopBtn.innerHTML = "▶ 开始练习";
+        startStopBtn.style.background = "#10b981";
+        startStopBtn.classList.add("stopped");
+
+        countdownHint.innerText = "练习已停止";
+    }
+
+    function togglePractice() {
+        if (isPracticing) {
+            stopPractice();
+        } else {
+            startPractice();
+        }
+    }
+
+    function restartRotation() {
+        if (selectedChordIds.size === 0 || !isPracticing) {
+            if (selectedChordIds.size === 0 && isPracticing) {
+                stopPractice();
+            }
+            return;
+        }
+        stopRotation();
+        startRotation();
+    }
+
+    function renderChordList() {
+        if (!chordListContainer) return;
+        if (chordsDatabase.length === 0) {
+            chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>';
+            selectedCountSpan.innerText = "0";
+            return;
+        }
+        let html = '';
+        chordsDatabase.forEach(chord => {
+            const isSelected = selectedChordIds.has(chord.id);
+            html += `
+                <div class="chord-tag ${isSelected ? 'selected' : ''}" data-id="${chord.id}">
+                    <span>🎵 ${escapeHtml(chord.name)}</span>
+                    <span class="delete-icon" data-delete-id="${chord.id}">✕</span>
+                </div>
+            `;
+        });
+        chordListContainer.innerHTML = html;
+        selectedCountSpan.innerText = selectedChordIds.size;
+
+        chordListContainer.querySelectorAll('.chord-tag').forEach(el => {
+            const chordId = parseInt(el.getAttribute('data-id'));
+            el.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-icon')) return;
+                toggleSelectChord(chordId);
+            });
+            const delBtn = el.querySelector('.delete-icon');
+            if (delBtn) {
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteChordById(chordId);
+                });
+            }
+        });
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m){
+            if(m==='&') return '&amp;';
+            if(m==='<') return '&lt;';
+            if(m==='>') return '&gt;';
+            return m;
+        });
+    }
+
+    function toggleSelectChord(chordId) {
+        if (selectedChordIds.has(chordId)) {
+            selectedChordIds.delete(chordId);
+        } else {
+            selectedChordIds.add(chordId);
+        }
+        renderChordList();
+
+        if (selectedChordIds.size === 0) {
+            if (isPracticing) {
+                stopPractice();
+            }
+            chordNameLabel.innerText = "无选中和弦";
+            chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E";
+        } else {
+            if (isPracticing && !rotationInterval) {
+                startRotation();
+            } else if (isPracticing) {
+                pickRandomChord();
+            }
+        }
+    }
+
+    async function deleteChordById(id) {
+        if (usingDemoMode) {
+            chordsDatabase = chordsDatabase.filter(c => c.id !== id);
+            if (selectedChordIds.has(id)) selectedChordIds.delete(id);
+            renderChordList();
+            if (selectedChordIds.size === 0 && isPracticing) stopPractice();
+            else if (isPracticing) pickRandomChord();
+        } else {
+            try {
+                const { error } = await mySupabase.from('chords').delete().eq('id', id);
+                if (error) throw error;
+                await loadChordsFromSupabase();
+            } catch (err) {
+                alert("删除失败:" + err.message);
+            }
+        }
+    }
+
+    async function uploadChord() {
+        const name = chordNameInput.value.trim();
+        const file = imageUploadInput.files[0];
+        if (!name || !file) {
+            alert("请输入和弦名称并选择图片");
+            return;
+        }
+
+        if (usingDemoMode) {
+            const localUrl = URL.createObjectURL(file);
+            const newId = Date.now();
+            const newChord = { id: newId, name: name, image_url: localUrl, created_at: new Date() };
+            chordsDatabase.push(newChord);
+            selectedChordIds.add(newId);
+            renderChordList();
+            chordNameInput.value = '';
+            imageUploadInput.value = '';
+            previewWrap.style.display = 'none';
+            if (isPracticing && !rotationInterval && selectedChordIds.size > 0) startRotation();
+            else if (isPracticing) pickRandomChord();
+            alert("本地模式已添加 (刷新页面会丢失，请配置正式 Supabase)");
+        } else {
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+                const { error: uploadError } = await mySupabase.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(`public/${fileName}`, file);
+                if (uploadError) throw uploadError;
+                const { data: publicUrlData } = mySupabase.storage.from(STORAGE_BUCKET).getPublicUrl(`public/${fileName}`);
+                const imageUrl = publicUrlData.publicUrl;
+                const { error: insertError } = await mySupabase.from('chords').insert([{ name: name, image_url: imageUrl }]);
+                if (insertError) throw insertError;
+                alert("上传成功!");
+                chordNameInput.value = '';
+                imageUploadInput.value = '';
+                previewWrap.style.display = 'none';
+                await loadChordsFromSupabase();
+            } catch (err) {
+                alert("上传失败: " + err.message);
+            }
+        }
+    }
+
+    async function loadChordsFromSupabase() {
+        if (usingDemoMode) {
+            if (chordsDatabase.length === 0) {
+                chordsDatabase = [
+                    { id: 1, name: "C Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=C+Major" },
+                    { id: 2, name: "G Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G+Major" },
+                    { id: 3, name: "Am", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=Am" }
+                ];
+                chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+                renderChordList();
+            } else {
+                renderChordList();
+            }
+            return;
+        }
+
+        try {
+            const { data, error } = await mySupabase.from('chords').select('*').order('created_at', {ascending: false});
+            if (error) throw error;
+            chordsDatabase = data || [];
+            if (selectedChordIds.size === 0 && chordsDatabase.length > 0) {
+                chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+            } else {
+                const newSelected = new Set();
+                for (let c of chordsDatabase) {
+                    if (selectedChordIds.has(c.id)) newSelected.add(c.id);
+                }
+                selectedChordIds = newSelected;
+                if (selectedChordIds.size === 0 && chordsDatabase.length) {
+                    chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+                }
+            }
+            renderChordList();
+        } catch (err) {
+            console.error("加载和弦失败:", err);
+            alert("加载和弦失败: " + err.message);
+        }
+    }
+
+    // 事件绑定
+    applyIntervalBtn.onclick = () => {
+        let val = parseInt(intervalInput.value);
+        if (isNaN(val) || val < 1) val = 3;
+        currentIntervalSec = val;
+        if (isPracticing && rotationInterval) {
+            restartRotation();
+        }
+    };
+
+    startStopBtn.onclick = togglePractice;
+    uploadBtn.onclick = uploadChord;
+
+    imageUploadInput.onchange = (e) => {
+        if (e.target.files.length) {
+            const url = URL.createObjectURL(e.target.files[0]);
+            previewImg.src = url;
+            previewWrap.style.display = 'flex';
+        } else {
+            previewWrap.style.display = 'none';
+        }
+    };
+
+    selectAllBtn.onclick = () => {
+        chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+        renderChordList();
+        if (isPracticing && !rotationInterval && selectedChordIds.size) startRotation();
+        else if (isPracticing) pickRandomChord();
+    };
+
+    deselectAllBtn.onclick = () => {
+        if (isPracticing) stopPractice();
+        selectedChordIds.clear();
+        renderChordList();
+        chordNameLabel.innerText = "--";
+        chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E";
+    };
+
+    async function init() {
+        await loadTotalSecondsFromCloud();
+        await loadChordsFromSupabase();
+        chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='16'%3E点击开始练习%3C/text%3E%3C/svg%3E";
+    }
+
+    init();
+</script>
+</body>
+</html>
