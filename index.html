@@ -719,27 +719,75 @@
     }
 
     async function loadTotalSeconds() {
-        if (usingDemoMode) {
-            let v = localStorage.getItem('total_seconds_demo');
-            totalSeconds = v ? parseInt(v) : 0;
+    if (usingDemoMode) {
+        let v = localStorage.getItem('total_seconds_demo');
+        totalSeconds = v ? parseInt(v) : 0;
+        updateTimersDisplay();
+        return;
+    }
+    try {
+        // 先查询是否存在该用户
+        let { data, error } = await supabaseClient
+            .from('practice_users')
+            .select('total_seconds')
+            .eq('user_id', FIXED_USER_ID)
+            .maybeSingle();
+
+        if (error) {
+            console.error("查询总时长出错:", error);
+            totalSeconds = 0;
             updateTimersDisplay();
             return;
         }
-        try {
-            const { data, error } = await supabaseClient.from('practice_users').select('total_seconds').eq('user_id', FIXED_USER_ID).single();
-            if (error && error.code !== 'PGRST116') throw error;
-            if (data) totalSeconds = data.total_seconds;
-            else totalSeconds = 0;
-            updateTimersDisplay();
-        } catch(e) { console.error(e); totalSeconds = 0; updateTimersDisplay(); }
+
+        if (data && data.total_seconds !== undefined) {
+            totalSeconds = data.total_seconds;
+            console.log("✅ 从云端加载总时长:", totalSeconds);
+        } else {
+            // 没有数据，创建一条新记录
+            console.log("没有找到用户记录，正在创建...");
+            const { data: newData, error: insertError } = await supabaseClient
+                .from('practice_users')
+                .insert([{ user_id: FIXED_USER_ID, total_seconds: 0 }])
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error("创建用户记录失败:", insertError);
+                totalSeconds = 0;
+            } else {
+                totalSeconds = 0;
+                console.log("✅ 已创建新用户记录");
+            }
+        }
+        updateTimersDisplay();
+    } catch(e) {
+        console.error("loadTotalSeconds 异常:", e);
+        totalSeconds = 0;
+        updateTimersDisplay();
     }
+}
 
     async function saveTotalSeconds() {
-        if (usingDemoMode) { localStorage.setItem('total_seconds_demo', totalSeconds); return; }
-        try {
-            await supabaseClient.from('practice_users').upsert({ user_id: FIXED_USER_ID, total_seconds: totalSeconds, updated_at: new Date() });
-        } catch(e) { console.error(e); }
+    if (usingDemoMode) {
+        localStorage.setItem('total_seconds_demo', totalSeconds);
+        return;
     }
+    try {
+        const { error } = await supabaseClient
+            .from('practice_users')
+            .update({ total_seconds: totalSeconds, updated_at: new Date() })
+            .eq('user_id', FIXED_USER_ID);
+
+        if (error) {
+            console.error("保存总时长失败:", error);
+        } else {
+            console.log("✅ 保存总时长成功:", totalSeconds);
+        }
+    } catch(e) {
+        console.error("saveTotalSeconds 异常:", e);
+    }
+}
 
     async function addPracticeSession(seconds) {
         const today = new Date().toISOString().slice(0,10);
@@ -938,20 +986,37 @@
         if (usingDemoMode) {
             if (chordsDatabase.length === 0) {
                 chordsDatabase = [
-                    { id: 1, name: "C Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=C" },
-                    { id: 2, name: "G Major", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G" },
+                    { id: 1, name: "C", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=C" },
+                    { id: 2, name: "G", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G" },
                     { id: 3, name: "Am", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=Am" }
                 ];
                 chordsDatabase.forEach(c => selectedChordIds.add(c.id));
                 renderChordList();
-            } else renderChordList();
+                preloadAllChordImages();
+            } else {
+                renderChordList();
+                preloadAllChordImages();
+            }
             return;
         }
         let { data } = await supabaseClient.from('chords').select('*').order('created_at');
         chordsDatabase = data || [];
         if (selectedChordIds.size === 0 && chordsDatabase.length) chordsDatabase.forEach(c => selectedChordIds.add(c.id));
         renderChordList();
+        preloadAllChordImages();
     }
+
+    function preloadAllChordImages() {
+        if (!chordsDatabase || chordsDatabase.length === 0) return;
+        console.log(`🔄 开始预加载 ${chordsDatabase.length} 张和弦图片...`);
+        chordsDatabase.forEach(chord => {
+            if (chord.image_url) {
+                const img = new Image();
+                img.src = chord.image_url;
+            }
+        });
+    }
+
 
     function renderChordList() {
         if (chordsDatabase.length === 0) { chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>'; selectedCountSpan.innerText = "0"; return; }
