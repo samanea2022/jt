@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>智能和弦练习室 | 动态随机练习</title>
+    <title>智能和弦练习室 | BPM节拍器进度条</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -26,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* ========== 电脑端样式（原来的布局） ========== */
+        /* ========== 电脑端样式 ========== */
         .stats-bar {
             background: white;
             border-radius: 32px;
@@ -83,6 +83,29 @@
             font-size: 0.85rem;
         }
 
+        .bpm-slider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 4px 16px;
+            border-radius: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .bpm-slider input {
+            width: 160px;
+        }
+        .bpm-value {
+            font-weight: 700;
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            min-width: 70px;
+            text-align: center;
+        }
+
         .sound-toggle {
             background: #f1f5f9;
             border-radius: 40px;
@@ -105,11 +128,6 @@
             font-weight: 500;
             outline: none;
             transition: 0.2s;
-        }
-
-        select:focus, input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
         }
 
         button {
@@ -175,7 +193,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: opacity 0.2s ease;
         }
-        #chordImg.loading { opacity: 0.5; }
+        #chordImg.loading { opacity: 0.6; }
 
         .chord-name-badge {
             font-size: 2rem;
@@ -188,7 +206,36 @@
             letter-spacing: 1px;
         }
 
-        .next-timer { margin-top: 18px; font-size: 0.9rem; color: #475569; }
+        /* 进度条区域 */
+        .progress-container {
+            margin-top: 24px;
+            padding: 0 20px;
+        }
+        .progress-track {
+            background-color: #e2e8f0;
+            border-radius: 20px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            background-color: #3b82f6;
+            height: 100%;
+            width: 100%;
+            border-radius: 20px;
+            transition: width 0.1s linear;
+            transform-origin: right center;
+        }
+        .bpm-info {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            color: #475569;
+        }
+
+        .next-timer { margin-top: 12px; font-size: 0.9rem; color: #475569; }
 
         /* 统计折叠面板 */
         .stats-collapsible {
@@ -386,165 +433,192 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* ========== 手机端覆盖样式（仅当屏幕宽度 ≤ 600px 时生效） ========== */
+        /* ========== 手机端适配 (宽度 ≤600px) ========== */
         @media (max-width: 600px) {
             body {
                 padding: 12px;
             }
-
             .container {
                 max-width: 100%;
             }
 
-            /* 顶部栏垂直排列 */
             .stats-bar {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 16px;
-                gap: 12px;
+                gap: 16px;
+                border-radius: 28px;
             }
 
             .timer-panel {
-                justify-content: center;
-                gap: 20px;
-                padding: 6px 16px;
+                justify-content: space-around;
+                gap: 12px;
+                padding: 10px 12px;
+                background: #f1f5f9;
+                border-radius: 48px;
             }
-
+            .timer-item {
+                text-align: center;
+                flex: 1;
+            }
+            .timer-label {
+                font-size: 0.7rem;
+                letter-spacing: 0.5px;
+            }
             .timer-value {
-                font-size: 1.3rem;
+                font-size: 1.4rem;
+                font-weight: 700;
             }
 
-            .control-group {
-                justify-content: center;
-                padding: 6px 12px;
+            .stats-bar > div:last-child {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                width: 100%;
             }
 
-            .control-group label {
+            .bpm-slider {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 6px;
+                background: white;
+                padding: 4px 10px;
+                border-radius: 40px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                flex: 2;
+                min-width: 0;
+            }
+            .bpm-slider span:first-child {
+                font-size: 0.8rem;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+            .bpm-slider input {
+                width: 100px;
+                flex-shrink: 1;
+                margin: 0;
+            }
+            .bpm-value {
                 font-size: 0.75rem;
+                padding: 2px 8px;
+                min-width: 60px;
+                text-align: center;
+                white-space: nowrap;
+            }
+            #intervalSecondsDisplay {
+                display: none;
             }
 
-            /* 统计折叠面板 - 全宽 */
+            .sound-toggle {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                background: #f1f5f9;
+                padding: 6px 12px;
+                border-radius: 40px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+            .sound-icon {
+                font-size: 1rem;
+            }
+            .sound-toggle span:last-child {
+                font-size: 0.7rem;
+            }
+
             .stats-header {
                 width: 100%;
                 justify-content: space-between;
             }
-
             .stats-header span:first-child {
                 font-size: 1rem;
             }
-
             .stats-summary {
                 font-size: 0.75rem;
             }
-
             .stats-panel {
                 padding: 16px;
             }
-
             .mini-stats-row {
                 gap: 12px;
             }
-
             .mini-stat {
                 padding: 10px;
             }
-
             .mini-stat .number {
                 font-size: 1.3rem;
             }
-
             .mini-stat .label {
                 font-size: 0.65rem;
             }
-
-            /* 和弦展示区 */
             .chord-showcase {
                 padding: 20px 16px 30px;
                 margin-bottom: 20px;
             }
-
             .chord-image-area {
                 min-height: 200px;
                 padding: 16px;
             }
-
             #chordImg {
                 max-height: 200px;
             }
-
             .chord-name-badge {
                 font-size: 1.3rem;
                 padding: 6px 20px;
             }
-
             .next-timer {
                 font-size: 0.8rem;
             }
-
-            /* 管理区域 */
             .management {
                 padding: 16px;
             }
-
             .flex-row {
                 flex-direction: column;
                 gap: 16px;
             }
-
             .upload-card, .chord-list-card {
                 min-width: auto;
                 padding: 16px;
             }
-
             h3 {
                 font-size: 1rem;
                 margin-bottom: 12px;
             }
-
             .chord-grid {
                 max-height: 240px;
                 gap: 10px;
             }
-
             .chord-tag {
                 padding: 5px 14px;
                 font-size: 0.8rem;
             }
-
             .chord-tag .delete-icon {
                 width: 18px;
                 height: 18px;
                 font-size: 12px;
             }
-
-            /* 按钮 */
             #startStopBtn {
                 font-size: 1rem;
                 padding: 10px 28px;
             }
-
             button {
                 padding: 6px 14px;
                 font-size: 0.75rem;
             }
-
             select, input {
                 padding: 6px 10px;
                 font-size: 0.8rem;
             }
-
-            .sound-icon {
-                font-size: 1.1rem;
-            }
-
-            /* 倒计时手机缩小 */
             .countdown-number {
                 font-size: 4rem;
             }
             .countdown-text {
                 font-size: 2.5rem;
             }
-
             .info-note {
                 font-size: 0.6rem;
             }
@@ -565,10 +639,11 @@
             </div>
         </div>
         <div style="display: flex; gap: 12px; align-items: center;">
-            <div class="control-group">
-                <label>⏱️间隔(s)</label>
-                <input type="number" id="intervalInput" min="1" max="60" value="5" step="1" style="width: 75px;">
-                <button id="applyIntervalBtn" class="secondary">应用</button>
+            <div class="bpm-slider">
+                <span>🎵 BPM</span>
+                <input type="range" id="bpmSlider" min="20" max="120" value="40" step="1">
+                <span class="bpm-value" id="bpmValue">40 BPM</span>
+                <span id="intervalSecondsDisplay" style="font-size:0.8rem;">(1.5秒)</span>
             </div>
             <div class="sound-toggle" id="soundToggleBtn">
                 <span class="sound-icon" id="soundIcon">🔊</span>
@@ -602,6 +677,15 @@
             <img id="chordImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='16'%3E点击开始练习%3C/text%3E%3C/svg%3E" alt="当前和弦图">
         </div>
         <div class="chord-name-badge" id="chordNameLabel">--</div>
+        <div class="progress-container">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+            <div class="bpm-info">
+                <span>⏱️ 下一和弦</span>
+                <span id="remainingSeconds">0.0</span>
+            </div>
+        </div>
         <div class="next-timer" id="countdownHint">未开始练习</div>
     </div>
 
@@ -639,6 +723,13 @@
     let supabaseClient = null;
     let usingDemoMode = false;
 
+    function getLocalDateString(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     if (MY_SUPABASE_URL.includes('your-project')) {
         usingDemoMode = true;
         console.warn("演示模式，数据仅存本地");
@@ -658,8 +749,10 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = 880; gain.gain.value = 0.2;
-            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.frequency.value = 880;
+            gain.gain.value = 0.2;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
             osc.stop(audioCtx.currentTime + 0.3);
             audioCtx.resume();
         } catch(e) {}
@@ -671,8 +764,10 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = 1568; gain.gain.value = 0.15;
-            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+            osc.frequency.value = 1568;
+            gain.gain.value = 0.15;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
             osc.stop(audioCtx.currentTime + 0.4);
             audioCtx.resume();
         } catch(e) {}
@@ -684,17 +779,15 @@
     let sessionSeconds = 0;
     let totalSeconds = 0;
     let practiceTimer = null, rotationInterval = null, countdownInterval = null, autoStopTimer = null;
-    let currentIntervalSec = 5;
+    let currentIntervalSec = 1.5;   // 由 BPM 决定
     let isPracticing = false, isCountdownActive = false;
     let weeklyChart = null;
 
-    // DOM
+    // DOM 元素
     const chordImg = document.getElementById('chordImg');
     const chordNameLabel = document.getElementById('chordNameLabel');
     const sessionTimeSpan = document.getElementById('sessionTime');
     const totalTimeSpan = document.getElementById('totalTime');
-    const intervalInput = document.getElementById('intervalInput');
-    const applyIntervalBtn = document.getElementById('applyIntervalBtn');
     const startStopBtn = document.getElementById('startStopBtn');
     const chordListContainer = document.getElementById('chordListContainer');
     const selectedCountSpan = document.getElementById('selectedCount');
@@ -708,161 +801,24 @@
     const deselectAllBtn = document.getElementById('deselectAllBtn');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
     const soundIcon = document.getElementById('soundIcon');
+    const bpmSlider = document.getElementById('bpmSlider');
+    const bpmValue = document.getElementById('bpmValue');
+    const intervalSecondsDisplay = document.getElementById('intervalSecondsDisplay');
+    const progressFill = document.getElementById('progressFill');
+    const remainingSecondsSpan = document.getElementById('remainingSeconds');
 
-    function formatTime(sec) {
-        let m = Math.floor(sec / 60), s = sec % 60;
-        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    }
-    function updateTimersDisplay() {
-        sessionTimeSpan.innerText = formatTime(sessionSeconds);
-        totalTimeSpan.innerText = formatTime(totalSeconds);
-    }
-
-    async function loadTotalSeconds() {
-    if (usingDemoMode) {
-        let v = localStorage.getItem('total_seconds_demo');
-        totalSeconds = v ? parseInt(v) : 0;
-        updateTimersDisplay();
-        return;
-    }
-    try {
-        // 先查询是否存在该用户
-        let { data, error } = await supabaseClient
-            .from('practice_users')
-            .select('total_seconds')
-            .eq('user_id', FIXED_USER_ID)
-            .maybeSingle();
-
-        if (error) {
-            console.error("查询总时长出错:", error);
-            totalSeconds = 0;
-            updateTimersDisplay();
-            return;
-        }
-
-        if (data && data.total_seconds !== undefined) {
-            totalSeconds = data.total_seconds;
-            console.log("✅ 从云端加载总时长:", totalSeconds);
-        } else {
-            // 没有数据，创建一条新记录
-            console.log("没有找到用户记录，正在创建...");
-            const { data: newData, error: insertError } = await supabaseClient
-                .from('practice_users')
-                .insert([{ user_id: FIXED_USER_ID, total_seconds: 0 }])
-                .select()
-                .single();
-
-            if (insertError) {
-                console.error("创建用户记录失败:", insertError);
-                totalSeconds = 0;
-            } else {
-                totalSeconds = 0;
-                console.log("✅ 已创建新用户记录");
+    // 预加载所有图片（仅用于缓存，不改变原有逻辑）
+    function preloadAllChordImages() {
+        if (!chordsDatabase || chordsDatabase.length === 0) return;
+        chordsDatabase.forEach(chord => {
+            if (chord.image_url) {
+                const img = new Image();
+                img.src = chord.image_url;
             }
-        }
-        updateTimersDisplay();
-    } catch(e) {
-        console.error("loadTotalSeconds 异常:", e);
-        totalSeconds = 0;
-        updateTimersDisplay();
-    }
-}
-
-    async function saveTotalSeconds() {
-    if (usingDemoMode) {
-        localStorage.setItem('total_seconds_demo', totalSeconds);
-        return;
-    }
-    try {
-        const { error } = await supabaseClient
-            .from('practice_users')
-            .update({ total_seconds: totalSeconds, updated_at: new Date() })
-            .eq('user_id', FIXED_USER_ID);
-
-        if (error) {
-            console.error("保存总时长失败:", error);
-        } else {
-            console.log("✅ 保存总时长成功:", totalSeconds);
-        }
-    } catch(e) {
-        console.error("saveTotalSeconds 异常:", e);
-    }
-}
-
-    async function addPracticeSession(seconds) {
-        const today = new Date().toISOString().slice(0,10);
-        if (usingDemoMode) {
-            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
-            if (!stats[today]) stats[today] = { count: 0, totalSeconds: 0 };
-            stats[today].count++;
-            stats[today].totalSeconds += seconds;
-            localStorage.setItem('practice_stats_demo', JSON.stringify(stats));
-            updateStatsUI();
-            return;
-        }
-        let { data: existing } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).eq('date', today).maybeSingle();
-        if (existing) {
-            await supabaseClient.from('daily_stats').update({
-                count: existing.count + 1,
-                total_seconds: existing.total_seconds + seconds
-            }).eq('id', existing.id);
-        } else {
-            await supabaseClient.from('daily_stats').insert({ user_id: FIXED_USER_ID, date: today, count: 1, total_seconds: seconds });
-        }
-        await updateStatsUI();
-    }
-
-    async function updateStatsUI() {
-        const today = new Date().toISOString().slice(0,10);
-        let todayCount = 0, todaySec = 0, weeklySec = 0;
-        if (usingDemoMode) {
-            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
-            if (stats[today]) { todayCount = stats[today].count; todaySec = stats[today].totalSeconds; }
-            for (let i=0; i<7; i++) {
-                let d = new Date(); d.setDate(d.getDate() - i);
-                let key = d.toISOString().slice(0,10);
-                if (stats[key]) weeklySec += stats[key].totalSeconds;
-            }
-        } else {
-            let sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            let { data } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).gte('date', sevenDaysAgo.toISOString().slice(0,10));
-            if (data) {
-                let todayRec = data.find(d => d.date === today);
-                if (todayRec) { todayCount = todayRec.count; todaySec = todayRec.total_seconds; }
-                weeklySec = data.reduce((s, d) => s + d.total_seconds, 0);
-            }
-        }
-        document.getElementById('todayCount').innerText = todayCount;
-        document.getElementById('todayDuration').innerText = Math.floor(todaySec / 60);
-        let weeklyMins = Math.floor(weeklySec / 60);
-        document.getElementById('weeklyTotal').innerText = weeklyMins;
-        document.getElementById('statsSummary').innerHTML = `今日 ${Math.floor(todaySec/60)}分钟 / 本周 ${weeklyMins}分钟`;
-
-        let labels = [], dataPoints = [];
-        let now = new Date();
-        for (let i=6; i>=0; i--) {
-            let d = new Date(now); d.setDate(now.getDate() - i);
-            let key = d.toISOString().slice(0,10);
-            let mins = 0;
-            if (usingDemoMode) {
-                let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
-                if (stats[key]) mins = Math.floor(stats[key].totalSeconds / 60);
-            } else {
-                let { data } = await supabaseClient.from('daily_stats').select('total_seconds').eq('user_id', FIXED_USER_ID).eq('date', key).maybeSingle();
-                if (data) mins = Math.floor(data.total_seconds / 60);
-            }
-            labels.push(key.slice(5));
-            dataPoints.push(mins);
-        }
-        if (weeklyChart) weeklyChart.destroy();
-        let ctx = document.getElementById('weeklyChart').getContext('2d');
-        weeklyChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: '分钟', data: dataPoints, backgroundColor: '#3b82f6', borderRadius: 8 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
         });
     }
 
+    // ========== 原始图片切换逻辑（一字不改，保证同步） ==========
     function setChordImage(imgUrl) {
         chordImg.classList.add('loading');
         let temp = new Image();
@@ -885,11 +841,159 @@
         return chord;
     }
 
+    // BPM 换算
+    function updateBpmAndInterval() {
+        let bpm = parseInt(bpmSlider.value);
+        currentIntervalSec = 60 / bpm;
+        bpmValue.innerText = `${bpm} BPM`;
+        intervalSecondsDisplay.innerText = `(${currentIntervalSec.toFixed(1)}秒)`;
+        if (isPracticing && rotationInterval) {
+            restartRotation();
+        }
+    }
+    bpmSlider.addEventListener('input', updateBpmAndInterval);
+
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60), s = sec % 60;
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+    function updateTimersDisplay() {
+        sessionTimeSpan.innerText = formatTime(sessionSeconds);
+        totalTimeSpan.innerText = formatTime(totalSeconds);
+    }
+
+    async function loadTotalSeconds() {
+        if (usingDemoMode) {
+            let v = localStorage.getItem('total_seconds_demo');
+            totalSeconds = v ? parseInt(v) : 0;
+            updateTimersDisplay();
+            return;
+        }
+        try {
+            let { data, error } = await supabaseClient
+                .from('practice_users')
+                .select('total_seconds')
+                .eq('user_id', FIXED_USER_ID)
+                .maybeSingle();
+
+            if (error) {
+                console.error("查询总时长出错:", error);
+                totalSeconds = 0;
+                updateTimersDisplay();
+                return;
+            }
+
+            if (data && data.total_seconds !== undefined) {
+                totalSeconds = data.total_seconds;
+            } else {
+                const { error: insertError } = await supabaseClient
+                    .from('practice_users')
+                    .insert([{ user_id: FIXED_USER_ID, total_seconds: 0 }]);
+                if (insertError) console.error("创建用户记录失败:", insertError);
+                totalSeconds = 0;
+            }
+            updateTimersDisplay();
+        } catch(e) {
+            console.error("loadTotalSeconds 异常:", e);
+            totalSeconds = 0;
+            updateTimersDisplay();
+        }
+    }
+
+    async function saveTotalSeconds() {
+        if (usingDemoMode) {
+            localStorage.setItem('total_seconds_demo', totalSeconds);
+            return;
+        }
+        try {
+            await supabaseClient
+                .from('practice_users')
+                .update({ total_seconds: totalSeconds, updated_at: new Date() })
+                .eq('user_id', FIXED_USER_ID);
+        } catch(e) {}
+    }
+
+    async function addPracticeSession(seconds) {
+        const today = getLocalDateString();
+        if (usingDemoMode) {
+            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+            if (!stats[today]) stats[today] = { count: 0, totalSeconds: 0 };
+            stats[today].count++;
+            stats[today].totalSeconds += seconds;
+            localStorage.setItem('practice_stats_demo', JSON.stringify(stats));
+            updateStatsUI();
+            return;
+        }
+        let { data: existing } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).eq('date', today).maybeSingle();
+        if (existing) {
+            await supabaseClient.from('daily_stats').update({
+                count: existing.count + 1,
+                total_seconds: existing.total_seconds + seconds
+            }).eq('id', existing.id);
+        } else {
+            await supabaseClient.from('daily_stats').insert({ user_id: FIXED_USER_ID, date: today, count: 1, total_seconds: seconds });
+        }
+        await updateStatsUI();
+    }
+
+    async function updateStatsUI() {
+        const today = getLocalDateString();
+        let todayCount = 0, todaySec = 0, weeklySec = 0;
+        if (usingDemoMode) {
+            let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+            if (stats[today]) { todayCount = stats[today].count; todaySec = stats[today].totalSeconds; }
+            for (let i=0; i<7; i++) {
+                let d = new Date(); d.setDate(d.getDate() - i);
+                let key = getLocalDateString(d);
+                if (stats[key]) weeklySec += stats[key].totalSeconds;
+            }
+        } else {
+            let sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            let { data } = await supabaseClient.from('daily_stats').select('*').eq('user_id', FIXED_USER_ID).gte('date', sevenDaysAgo.toISOString().slice(0,10));
+            if (data) {
+                let todayRec = data.find(d => d.date === today);
+                if (todayRec) { todayCount = todayRec.count; todaySec = todayRec.total_seconds; }
+                weeklySec = data.reduce((s, d) => s + d.total_seconds, 0);
+            }
+        }
+        document.getElementById('todayCount').innerText = todayCount;
+        document.getElementById('todayDuration').innerText = Math.floor(todaySec / 60);
+        let weeklyMins = Math.floor(weeklySec / 60);
+        document.getElementById('weeklyTotal').innerText = weeklyMins;
+        document.getElementById('statsSummary').innerHTML = `今日 ${Math.floor(todaySec/60)}分钟 / 本周 ${weeklyMins}分钟`;
+
+        let labels = [], dataPoints = [];
+        let now = new Date();
+        for (let i=6; i>=0; i--) {
+            let d = new Date(now); d.setDate(now.getDate() - i);
+            let key = getLocalDateString(d);
+            let mins = 0;
+            if (usingDemoMode) {
+                let stats = JSON.parse(localStorage.getItem('practice_stats_demo') || '{}');
+                if (stats[key]) mins = Math.floor(stats[key].totalSeconds / 60);
+            } else {
+                let { data } = await supabaseClient.from('daily_stats').select('total_seconds').eq('user_id', FIXED_USER_ID).eq('date', key).maybeSingle();
+                if (data) mins = Math.floor(data.total_seconds / 60);
+            }
+            labels.push(key.slice(5));
+            dataPoints.push(mins);
+        }
+        if (weeklyChart) weeklyChart.destroy();
+        let ctx = document.getElementById('weeklyChart').getContext('2d');
+        weeklyChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: '分钟', data: dataPoints, backgroundColor: '#3b82f6', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+        });
+    }
+
     function stopRotation() {
         if (rotationInterval) clearInterval(rotationInterval);
         if (countdownInterval) clearInterval(countdownInterval);
         rotationInterval = null;
         countdownHint.innerText = "练习已停止";
+        progressFill.style.width = '0%';
+        remainingSecondsSpan.innerText = '0.0';
     }
 
     function startRotation() {
@@ -901,11 +1005,22 @@
             if (rotationInterval && isPracticing) window._nextSwitch = Date.now() + currentIntervalSec * 1000;
         }, currentIntervalSec * 1000);
         window._nextSwitch = Date.now() + currentIntervalSec * 1000;
-        countdownInterval = setInterval(() => {
-            if (!rotationInterval || !isPracticing) return;
-            let remain = Math.ceil((window._nextSwitch - Date.now()) / 1000);
-            countdownHint.innerText = remain > 0 ? `⏳ 下次切换: ${remain} 秒` : `🔄 即将切换...`;
-        }, 200);
+        countdownHint.innerText = "🎵 练习进行中";
+        // 启动进度条刷新
+        if (window.progInterval) clearInterval(window.progInterval);
+        window.progInterval = setInterval(() => {
+            if (!isPracticing || !rotationInterval) {
+                progressFill.style.width = '0%';
+                remainingSecondsSpan.innerText = '0.0';
+                return;
+            }
+            let now = Date.now();
+            let remaining = Math.max(0, (window._nextSwitch - now) / 1000);
+            let percent = (remaining / currentIntervalSec) * 100;
+            percent = Math.min(100, Math.max(0, percent));
+            progressFill.style.width = `${percent}%`;
+            remainingSecondsSpan.innerText = remaining.toFixed(1);
+        }, 50);
     }
 
     function showCountdown(callback) {
@@ -975,8 +1090,11 @@
         if (practiceTimer) clearInterval(practiceTimer);
         if (autoStopTimer) clearInterval(autoStopTimer);
         stopRotation();
+        if (window.progInterval) clearInterval(window.progInterval);
         startStopBtn.innerHTML = "▶ 开始练习"; startStopBtn.style.background = "#10b981"; startStopBtn.classList.add("stopped");
         countdownHint.innerText = "练习已停止";
+        progressFill.style.width = '0%';
+        remainingSecondsSpan.innerText = '0.0';
     }
 
     function togglePractice() { if (isPracticing) stopPractice(); else startPracticeWithCountdown(); }
@@ -1005,18 +1123,6 @@
         renderChordList();
         preloadAllChordImages();
     }
-
-    function preloadAllChordImages() {
-        if (!chordsDatabase || chordsDatabase.length === 0) return;
-        console.log(`🔄 开始预加载 ${chordsDatabase.length} 张和弦图片...`);
-        chordsDatabase.forEach(chord => {
-            if (chord.image_url) {
-                const img = new Image();
-                img.src = chord.image_url;
-            }
-        });
-    }
-
 
     function renderChordList() {
         if (chordsDatabase.length === 0) { chordListContainer.innerHTML = '<div style="color:#9ca3af;">暂无和弦，请先上传和弦图</div>'; selectedCountSpan.innerText = "0"; return; }
@@ -1075,7 +1181,6 @@
     }
 
     // 事件绑定
-    applyIntervalBtn.onclick = () => { let v = parseInt(intervalInput.value); if (v>0) currentIntervalSec = v; if (isPracticing && rotationInterval) restartRotation(); };
     startStopBtn.onclick = togglePractice;
     uploadBtn.onclick = uploadChord;
     imageUploadInput.onchange = (e) => { if (e.target.files[0]) { previewImg.src = URL.createObjectURL(e.target.files[0]); previewWrap.style.display = 'flex'; } else previewWrap.style.display = 'none'; };
@@ -1085,6 +1190,7 @@
     document.getElementById('statsHeader').onclick = () => document.getElementById('statsPanel').classList.toggle('open');
 
     async function init() {
+        updateBpmAndInterval();
         await loadTotalSeconds();
         await loadChords();
         await updateStatsUI();
