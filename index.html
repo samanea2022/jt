@@ -697,7 +697,6 @@
                 <input type="file" id="imageUpload" accept="image/*" style="width:100%; margin-bottom:12px;">
                 <button id="uploadBtn">⬆️ 上传到服务器</button>
                 <div class="upload-preview" id="previewWrap" style="display:none;"><span>🖼️ 预览:</span><img id="previewImg" width="40" height="40" style="border-radius: 12px;"></div>
-                <div class="info-note">※ 上传后所有设备同步，图片存储于Supabase Storage</div>
             </div>
             <div class="chord-list-card">
                 <h3>🎸 可选和弦 (点击选择/反选)</h3>
@@ -722,6 +721,39 @@
 
     let supabaseClient = null;
     let usingDemoMode = false;
+
+    // 保存 BPM 到本地
+    function saveBPM(bpm) {
+        localStorage.setItem('saved_bpm', bpm);
+    }
+
+    // 加载 BPM
+    function loadBPM() {
+        const saved = localStorage.getItem('saved_bpm');
+        if (saved && !isNaN(parseInt(saved))) {
+            return Math.min(120, Math.max(20, parseInt(saved)));
+        }
+        return 40; // 默认值
+    }
+
+    // 保存选中的和弦 ID 列表
+    function saveSelectedChords() {
+        const selectedArray = Array.from(selectedChordIds);
+        localStorage.setItem('saved_selected_chords', JSON.stringify(selectedArray));
+    }
+
+    // 加载选中的和弦 ID 列表
+    function loadSelectedChords() {
+        const saved = localStorage.getItem('saved_selected_chords');
+        if (saved) {
+            try {
+                return new Set(JSON.parse(saved));
+            } catch(e) {
+                return new Set();
+            }
+        }
+        return new Set();
+    }
 
     function getLocalDateString(date = new Date()) {
         const year = date.getFullYear();
@@ -847,6 +879,7 @@
         currentIntervalSec = 60 / bpm;
         bpmValue.innerText = `${bpm} BPM`;
         intervalSecondsDisplay.innerText = `(${currentIntervalSec.toFixed(1)}秒)`;
+        saveBPM(bpm);  // 新增：保存 BPM
         if (isPracticing && rotationInterval) {
             restartRotation();
         }
@@ -1108,7 +1141,13 @@
                     { id: 2, name: "G", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=G" },
                     { id: 3, name: "Am", image_url: "https://placehold.co/400x300/e2e8f0/334155?text=Am" }
                 ];
-                chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+                // 恢复保存的选中状态
+                const savedSet = loadSelectedChords();
+                if (savedSet.size > 0) {
+                    chordsDatabase.forEach(c => { if (savedSet.has(c.id)) selectedChordIds.add(c.id); });
+                } else {
+                    chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+                }
                 renderChordList();
                 preloadAllChordImages();
             } else {
@@ -1119,7 +1158,16 @@
         }
         let { data } = await supabaseClient.from('chords').select('*').order('created_at');
         chordsDatabase = data || [];
-        if (selectedChordIds.size === 0 && chordsDatabase.length) chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+
+        // 恢复保存的选中状态
+        const savedSet = loadSelectedChords();
+        if (savedSet.size > 0) {
+            chordsDatabase.forEach(c => { if (savedSet.has(c.id)) selectedChordIds.add(c.id); });
+        } else if (chordsDatabase.length > 0) {
+            // 如果没有保存记录，默认全选
+            chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+        }
+
         renderChordList();
         preloadAllChordImages();
     }
@@ -1146,6 +1194,7 @@
     function toggleSelect(id) {
         if (selectedChordIds.has(id)) selectedChordIds.delete(id);
         else selectedChordIds.add(id);
+        saveSelectedChords();  // 新增：保存选中的和弦
         renderChordList();
         if (selectedChordIds.size === 0 && isPracticing) stopPractice();
         else if (isPracticing && !rotationInterval) startRotation();
@@ -1184,13 +1233,30 @@
     startStopBtn.onclick = togglePractice;
     uploadBtn.onclick = uploadChord;
     imageUploadInput.onchange = (e) => { if (e.target.files[0]) { previewImg.src = URL.createObjectURL(e.target.files[0]); previewWrap.style.display = 'flex'; } else previewWrap.style.display = 'none'; };
-    selectAllBtn.onclick = () => { chordsDatabase.forEach(c => selectedChordIds.add(c.id)); renderChordList(); if (isPracticing && !rotationInterval && selectedChordIds.size) startRotation(); };
-    deselectAllBtn.onclick = () => { if (isPracticing) stopPractice(); selectedChordIds.clear(); renderChordList(); chordNameLabel.innerText = "--"; chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E"; };
+    selectAllBtn.onclick = () => {
+        chordsDatabase.forEach(c => selectedChordIds.add(c.id));
+        saveSelectedChords();  // 新增
+        renderChordList();
+        if (isPracticing && !rotationInterval && selectedChordIds.size) startRotation();
+    };
+
+    deselectAllBtn.onclick = () => {
+        if (isPracticing) stopPractice();
+        selectedChordIds.clear();
+        saveSelectedChords();  // 新增
+        renderChordList();
+        chordNameLabel.innerText = "--";
+        chordImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b'%3E未选中和弦%3C/text%3E%3C/svg%3E";
+    };
     soundToggleBtn.onclick = () => { soundEnabled = !soundEnabled; soundIcon.innerText = soundEnabled ? "🔊" : "🔇"; };
     document.getElementById('statsHeader').onclick = () => document.getElementById('statsPanel').classList.toggle('open');
 
     async function init() {
-        updateBpmAndInterval();
+        // 恢复保存的 BPM
+        const savedBPM = loadBPM();
+        bpmSlider.value = savedBPM;
+        updateBpmAndInterval();  // 这会触发保存，但值相同没问题
+
         await loadTotalSeconds();
         await loadChords();
         await updateStatsUI();
